@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>בחירת צוות</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h2>בחירת אנשי צוות</h2>
+      <p>
+        יש לבחור בדיוק
+        <b>{{ required_attendants }}</b> דיילים ו־
+        <b>{{ required_pilots }}</b> טייסים לטיסה
+      </p>
+    </div>
+
+    <div class="card">
+      {% if error %}
+        <div class="notice error">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/finalize-flight" id="crewForm">
+        <div class="split">
+
+          <!-- Attendants -->
+          <div>
+            <h3 class="section-title">דיילים</h3>
+            <div class="small">בחר/י {{ required_attendants }} דיילים</div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>בחירה</th>
+                    <th>ת"ז</th>
+                    <th>שם</th>
+                    <th>הכשרה</th>
+                    <th>תאריך תחילת עבודה</th>
+                    <th>טיסה אחרונה - נחיתה</th>
+                    <th>טיסה אחרונה - מוצא</th>
+                    <th>טיסה אחרונה - יעד</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for a in attendants %}
+                  <tr>
+                    <td class="pick">
+                      <input type="checkbox" class="attendant-box" name="attendant_ids" value="{{ a.attendant_id }}">
+                    </td>
+                    <td>{{ a.attendant_id }}</td>
+                    <td>{{ a.full_name }}</td>
+                    <td>{{ a.training }}</td>
+                    <td>{{ a.start_date }}</td>
+                    <td>{{ a.last_arrival_datetime or "-" }}</td>
+                    <td>{{ a.last_origin or "-" }}</td>
+                    <td>{{ a.last_destination or "-" }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="notice" id="attNote" style="display:none;"></div>
+          </div>
+
+          <!-- Pilots -->
+          <div>
+            <h3 class="section-title">טייסים</h3>
+            <div class="small">בחר/י {{ required_pilots }} טייסים</div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>בחירה</th>
+                    <th>ת"ז</th>
+                    <th>שם</th>
+                    <th>הכשרה</th>
+                    <th>תאריך תחילת עבודה</th>
+                    <th>טיסה אחרונה - נחיתה</th>
+                    <th>טיסה אחרונה - מוצא</th>
+                    <th>טיסה אחרונה - יעד</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for p in pilots %}
+                  <tr>
+                    <td class="pick">
+                      <input type="checkbox" class="pilot-box" name="pilot_ids" value="{{ p.pilot_id }}">
+                    </td>
+                    <td>{{ p.pilot_id }}</td>
+                    <td>{{ p.full_name }}</td>
+                    <td>{{ p.training }}</td>
+                    <td>{{ p.start_date }}</td>
+                    <td>{{ p.last_arrival_datetime or "-" }}</td>
+                    <td>{{ p.last_origin or "-" }}</td>
+                    <td>{{ p.last_destination or "-" }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="notice" id="pilotNote" style="display:none;"></div>
+          </div>
+
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">סיום יצירת טיסה</button>
+          <a class="btn btn-ghost" href="/create-flight" style="text-decoration:none; display:inline-grid; place-items:center;">ביטול וחזרה</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+  const requiredAtt = {{ required_attendants }};
+  const requiredPil = {{ required_pilots }};
+
+  const attBoxes = Array.from(document.querySelectorAll(".attendant-box"));
+  const pilBoxes = Array.from(document.querySelectorAll(".pilot-box"));
+
+  const attNote = document.getElementById("attNote");
+  const pilNote = document.getElementById("pilotNote");
+
+  function enforceLimit(boxes, limit, noteEl, label){
+    const checked = boxes.filter(b => b.checked);
+    if (checked.length > limit){
+      // אם עברו את המקסימום – בטל את האחרון שסומן
+      const last = checked[checked.length - 1];
+      last.checked = false;
+    }
+    const now = boxes.filter(b => b.checked).length;
+    if (now < limit){
+      noteEl.style.display = "block";
+      noteEl.textContent = `בחרת ${now} מתוך ${limit} ${label}.`;
+    } else {
+      noteEl.style.display = "none";
+      noteEl.textContent = "";
+    }
+  }
+
+  attBoxes.forEach(b => b.addEventListener("change", () => enforceLimit(attBoxes, requiredAtt, attNote, "דיילים")));
+  pilBoxes.forEach(b => b.addEventListener("change", () => enforceLimit(pilBoxes, requiredPil, pilNote, "טייסים")));
+
+  // ולידציה גם בשליחה
+  document.getElementById("crewForm").addEventListener("submit", (e) => {
+    const aCount = attBoxes.filter(b => b.checked).length;
+    const pCount = pilBoxes.filter(b => b.checked).length;
+
+    if (aCount !== requiredAtt || pCount !== requiredPil){
+      e.preventDefault();
+      attNote.style.display = "block";
+      pilNote.style.display = "block";
+      attNote.classList.add("error");
+      pilNote.classList.add("error");
+      attNote.textContent = `חייב לבחור בדיוק ${requiredAtt} דיילים. בחרת ${aCount}.`;
+      pilNote.textContent = `חייב לבחור בדיוק ${requiredPil} טייסים. בחרת ${pCount}.`;
+      window.scrollTo({top: 0, behavior: "smooth"});
+    }
+  });
+</script>
+</body>
+</html>

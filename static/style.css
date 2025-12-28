@@ -1,0 +1,282 @@
+:root{
+  --blue:#0b66d6;
+  --blue2:#2ea3ff;
+  --text:#0b1b33;
+  --muted:#5a6b85;
+  --bg1:#e6f0ff;
+  --bg2:#f8fbff;
+  --card:#ffffff;
+  --border:#d7e0ee;
+  --shadow: 0 12px 30px rgba(12, 44, 90, 0.12);
+  --radius:14px;
+}
+
+body{
+  font-family:"Segoe UI", Arial, sans-serif;
+  background: linear-gradient(120deg, var(--bg1), var(--bg2));
+  direction: rtl;
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+}
+
+.page{
+  width:min(980px, 92vw);
+  margin: 60px auto;
+}
+
+.header{
+  text-align:center;
+  margin-bottom: 18px;
+}
+
+.header h1, .header h2{
+  margin: 0;
+  color:#08315f;
+  letter-spacing: .2px;
+}
+.header p{
+  margin:10px 0 0;
+  color:var(--muted);
+}
+
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 26px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+  margin-top: 16px;
+}
+
+.field label{
+  display:block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color:#193456;
+  font-size: 13px;
+}
+
+.field input, .field select{
+  width: 100%;
+  padding: 11px 12px;
+  border:1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  outline:none;
+  transition: 0.15s;
+  background: #fbfdff;
+}
+
+.field input:focus, .field select:focus{
+  border-color: rgba(11,102,214,.55);
+  box-shadow: 0 0 0 4px rgba(11,102,214,.12);
+}
+
+.actions{
+  margin-top: 18px;
+  display:flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn{
+  appearance:none;
+  border:none;
+  cursor:pointer;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight:800;
+  font-size: 15px;
+  width: min(320px, 100%);
+  transition: .15s;
+}
+
+.btn-primary{
+  color:#fff;
+  background: linear-gradient(90deg, var(--blue), var(--blue2));
+}
+.btn-primary:hover{ transform: translateY(-1px); opacity: .96; }
+
+.btn-ghost{
+  color: #0b66d6;
+  background: #eef6ff;
+  border: 1px solid #cfe3ff;
+}
+.btn-ghost:hover{ transform: translateY(-1px); }
+
+.notice{
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: #fff7e6;
+  border: 1px solid #ffe1a6;
+  border-radius: 12px;
+  color: #6a4b00;
+}
+
+.notice.error{
+  background: #ffecec;
+  border-color: #ffb7b7;
+  color: #7a1212;
+}
+
+.table-wrap{
+  margin-top: 16px;
+  overflow:auto;
+  border:1px solid var(--border);
+  border-radius: 14px;
+}
+
+table{
+  width:100%;
+  border-collapse: collapse;
+  min-width: 860px;
+}
+
+th{
+  background: #eaf3ff;
+  color:#0b3a72;
+  text-align:center;
+  font-size: 13px;
+  padding: 12px 10px;
+  border-bottom:1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+
+td{
+  text-align:center;
+  padding: 12px 10px;
+  border-bottom:1px solid #eef2f8;
+  font-size: 14px;
+  color:#193456;
+}
+
+tr:hover td{
+  background: #f7fbff;
+}
+
+.split{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.section-title{
+  margin:0 0 10px;
+  font-size: 16px;
+  color:#08315f;
+}
+
+.small{
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ===== Styled radio/checkbox ===== */
+.pick{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+}
+
+.pick input{
+  appearance:none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #b7c7df;
+  border-radius: 6px;
+  background:#fff;
+  display:inline-grid;
+  place-content:center;
+  cursor:pointer;
+}
+.pick input[type="radio"]{ border-radius: 999px; }
+
+.pick input:checked{
+  border-color: var(--blue);
+  background: rgba(11,102,214,.08);
+}
+.pick input:checked::after{
+  content:"✓";
+  font-weight:900;
+  font-size: 14px;
+  color: var(--blue);
+  transform: translateY(-1px);
+}
+
+.link{
+  display:block;
+  text-align:center;
+  margin-top: 14px;
+  color: var(--blue);
+  text-decoration:none;
+  font-weight:700;
+}
+.link:hover{ text-decoration:underline; }
+
+@media (max-width: 820px){
+  .form-grid{ grid-template-columns: 1fr; }
+  .split{ grid-template-columns: 1fr; }
+  table{ min-width: 720px; }
+}/* ======================================================
+   FINAL polish: centered cards + larger dashboard UI
+   ====================================================== */
+
+/* Perfect vertical & horizontal centering */
+body.login-page,
+body.dashboard-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Ensure page wrapper does not push content down */
+body.login-page .page,
+body.dashboard-page .page {
+  margin: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Bigger, clearer card like main system pages */
+body.login-page .card,
+body.dashboard-page .card {
+  max-width: 560px;
+  width: 100%;
+  padding: 36px 40px;
+}
+
+/* ===== Login form spacing ===== */
+body.login-page .field {
+  margin-bottom: 18px;
+}
+
+/* ===== Dashboard emphasis ===== */
+
+/* Bigger title */
+body.dashboard-page .header h2 {
+  font-size: 26px;
+}
+
+/* Slightly larger subtitle */
+body.dashboard-page .header p {
+  font-size: 14px;
+}
+
+/* Bigger buttons for dashboard actions */
+body.dashboard-page .btn {
+  font-size: 17px;
+  padding: 14px 16px;
+  width: 100%;
+}
+
