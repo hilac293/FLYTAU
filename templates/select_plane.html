@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>בחירת מטוס</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <h2>בחירת מטוס לטיסה</h2>
+      <p>בחר/י מטוס אחד מהרשימה הזמינה</p>
+    </div>
+
+    <div class="card">
+      {% if not planes %}
+        <div class="notice error">❌ אין מטוסים זמינים לטיסה זו</div>
+        <a class="link" href="/create-flight">חזרה ליצירת טיסה</a>
+      {% else %}
+
+      {% if error %}
+        <div class="notice error">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/select-crew">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>בחירה</th>
+                {% for col in plane_columns %}
+                  <th>{{ col }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for plane in planes %}
+                <tr>
+                  <td class="pick">
+                    <input type="radio" name="plane_id" value="{{ plane['plane_id'] }}" required>
+                  </td>
+                  {% for col in plane_columns %}
+                    <td>{{ plane[col] }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">המשך לבחירת צוות →</button>
+          <a class="btn btn-ghost" href="/create-flight" style="text-decoration:none; display:inline-grid; place-items:center;">חזרה</a>
+        </div>
+      </form>
+
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

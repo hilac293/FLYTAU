@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>יצירת טיסה חדשה</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <div class="page">
+    <div class="card">
+
+      <div class="header">
+        <h2>יצירת טיסה חדשה</h2>
+        <p>הזן פרטי טיסה</p>
+      </div>
+
+      <form method="POST">
+        <div class="form-grid">
+
+          <div class="field">
+            <label>תאריך יציאה</label>
+            <input type="date" name="date" required>
+          </div>
+
+          <div class="field">
+            <label>שעת יציאה</label>
+            <input type="time" name="time" required>
+          </div>
+
+          <!-- spacer -->
+          <div style="grid-column: span 2; height: 6px;"></div>
+
+          <div class="field">
+            <label>מוצא</label>
+            <input type="text" name="origin" required>
+          </div>
+
+          <div class="field">
+            <label>יעד</label>
+            <input type="text" name="destination" required>
+          </div>
+
+          <!-- spacer -->
+          <div style="grid-column: span 2; height: 6px;"></div>
+
+          <div class="field">
+            <label>מחיר רגיל</label>
+            <input type="number" step="0.01" name="regular_price" required>
+          </div>
+
+          <div class="field">
+            <label>מחיר ביזנס</label>
+            <input type="number" step="0.01" name="business_price" required>
+          </div>
+
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">
+            המשך לבחירת מטוס
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</body>
+</html>

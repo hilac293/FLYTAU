@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>כניסת מנהלים</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="login-page">
+  <div class="page">
+    <div class="card">
+
+      <div class="header">
+        <h1>כניסת מנהלים</h1>
+        <p>אנא הזן תעודת זהות וסיסמה</p>
+      </div>
+
+      <form method="POST">
+        <div class="field">
+          <label>תעודת זהות</label>
+          <input type="text" name="manager_id" required>
+        </div>
+
+        <div class="field">
+          <label>סיסמה</label>
+          <input type="password" name="password" required>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">
+            התחברות
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</body>
+</html>

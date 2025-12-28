@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>תפריט מנהל</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="dashboard-page">
+  <div class="page">
+    <div class="card">
+
+      <div class="header">
+        <h2>תפריט מנהל</h2>
+        <p>בחר פעולה להמשך</p>
+      </div>
+
+      <div class="actions" style="flex-direction: column;">
+        <a href="/create-flight" style="width:100%; text-decoration:none;">
+          <button class="btn btn-primary">
+            ✈️ יצירה / ביטול טיסה
+          </button>
+        </a>
+
+        <button class="btn btn-ghost" disabled>
+          📋 צפייה בלוח טיסות
+        </button>
+
+        <button class="btn btn-ghost" disabled>
+          📊 סטטיסטיקות ודוחות
+        </button>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

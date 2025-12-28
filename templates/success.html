@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>הצלחה</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <div class="header">
+        <h2>✅ הטיסה נוצרה בהצלחה!</h2>
+        <p>המטוס והצוות שובצו לטיסה.</p>
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-primary" href="/create-flight" style="text-decoration:none; display:inline-grid; place-items:center;">יצירת טיסה נוספת</a>
+        <a class="btn btn-ghost" href="/dashboard" style="text-decoration:none; display:inline-grid; place-items:center;">חזרה לתפריט</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
