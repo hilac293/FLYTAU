@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FLYTAU - דף ראשי</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+  <div class="page">
+
+    <!-- Header עליון -->
+    <div class="header" style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <a href="#" class="link">הרשמה</a> |
+        <a href="#" class="link">התחברות</a>
+      </div>
+      <div>
+        <a href="#" class="link" style="border-bottom:2px solid var(--blue); padding-bottom:2px;">צריכים אותנו?</a>
+      </div>
+      <div>
+        <h1 style="margin:0; font-family:'Segoe UI', Arial, sans-serif; color:var(--blue);">FLYTAU</h1>
+      </div>
+    </div>
+
+    <!-- כפתורי פעולה מרכזיים -->
+    <div class="actions" style="margin-top:40px;">
+      <button class="btn btn-primary" style="background: linear-gradient(90deg, var(--blue), var(--blue2));">הזמנת טיסה</button>
+      <button class="btn btn-ghost">ניהול הזמנה</button>
+      <button class="btn btn-ghost">היסטוריית רכישות</button>
+    </div>
+
+    <!-- סוגי טיסות -->
+    <div class="actions" style="margin-top:20px;">
+      <label class="pick">
+        <input type="radio" name="flight-type" checked>
+        <span>הלוך-חזור</span>
+      </label>
+      <label class="pick">
+        <input type="radio" name="flight-type">
+        <span>כיוון אחד</span>
+      </label>
+      <label class="pick">
+        <input type="radio" name="flight-type">
+        <span>כל היעדים</span>
+      </label>
+    </div>
+
+    <!-- טופס חיפוש טיסה -->
+    <div class="card" style="margin-top:20px;">
+      <div class="form-grid">
+        <div class="field">
+          <label for="source">מקור</label>
+          <input list="airports" id="source" placeholder="הקלד עיר או נמל תעופה">
+          <datalist id="airports">
+            <option value="תל אביב - נתב״ג">
+            <option value="חיפה">
+            <option value="אילת">
+            <option value="ירושלים">
+            <option value="לונדון">
+            <option value="פריז">
+            <option value="ניו יורק">
+          </datalist>
+        </div>
+
+        <div class="field">
+          <label for="destination">יעד</label>
+          <input list="airports" id="destination" placeholder="הקלד עיר או נמל תעופה">
+        </div>
+
+        <div class="field">
+          <label for="departure">תאריך יציאה</label>
+          <input type="date" id="departure">
+        </div>
+
+        <div class="field">
+          <label for="return">תאריך חזרה</label>
+          <input type="date" id="return">
+        </div>
+
+        <div class="field">
+          <label for="passengers">מספר נוסעים</label>
+          <input type="number" id="passengers" min="1" value="1">
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:16px;">
+        <button class="btn btn-primary">חיפוש טיסה</button>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
