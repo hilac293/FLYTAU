@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, session
 from datetime import datetime, timedelta
 
+from werkzeug.security import generate_password_hash
+
+from Customers import Registered
 from utils import get_connection
 from flights_and_workers import Flight
 from func_for_flights import (
@@ -12,6 +15,14 @@ from func_for_flights import (
 
 app = Flask(__name__)
 app.secret_key = "secret123"
+
+# Steps for the progress bar
+STEPS = [
+    "פרטי נוסעים",
+    "תוספות",
+    "סיכום פרטי הזמנה",
+    "תשלום"
+]
 
 
 # ======================================================
@@ -423,6 +434,127 @@ def search_flights():
     return render_template("search_results.html", flights=results, passengers=passengers)
 
 
+
+
+#flight login
+
+@app.route("/flight-login", methods=["GET"])
+def flight_login():
+    return render_template("flight_login.html")
+
+#register
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    print("Register started")
+
+    if request.method == "POST":
+        print("Register POST")
+
+        # 1. Get data from form
+        first_name = request.form.get("first_name")
+        last_name = request.form.get("last_name")
+        email = request.form.get("email")
+        passport = request.form.get("passport")
+        birth_date = request.form.get("birth_date")
+        password = request.form.get("password")
+        confirm_password = request.form.get("confirm_password")
+        phones = request.form.getlist("phones[]")
+
+        # 2. Check required fields
+        if not all([first_name, last_name, email, passport, birth_date, password, confirm_password]):
+            flash("נא למלא את כל השדות")
+            return redirect(url_for("register"))
+
+        # 3. Check password match
+        if password != confirm_password:
+            flash("הסיסמאות אינן תואמות")
+            return redirect(url_for("register"))
+
+
+        # 4. Validate password pattern
+        # Must be at least 6 characters, include letters and numbers
+        pattern = re.compile(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$')
+        if not pattern.match(password):
+            flash("סיסמה חייבת להיות לפחות 6 תווים, עם אותיות ומספרים")
+            # return redirect(url_for("register"))
+
+        # 5. Hash password+
+
+        hashed_password = generate_password_hash(password)
+
+        # 6. Create user object and save to DB
+        user = Registered(
+            passport_number=passport,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            birth_date=birth_date,
+            password=hashed_password,
+            phones=phones,
+            registration_date=date.today()
+        )
+
+        try:
+            user.save_to_db()
+        except Exception as e:
+            flash(f"שגיאה בשמירה למסד הנתונים: {e}")
+            return redirect(url_for("register"))
+
+        # 🔹 Log the user in via session
+        session["logged_in"] = True
+        session["user_passport"] = user.passport_number
+        session["user_email"] = user.email
+        session["user_name"] = f"{user.first_name} {user.last_name}"
+
+        session["booking"]["user"] = {
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "phone": user.phones[0]
+            }
+
+        flash("הרשמה בוצעה בהצלחה! אתה מחובר עכשיו.")
+        return redirect(url_for("debug_start"))
+
+    else:
+        # GET → show form
+        return render_template("register.html")
+
+
+#TODO: delete this when will be a real session
+
+@app.route("/debug/start")
+def debug_start():
+    # session["booking"] = {
+    #     "num_passengers": 3,      # pretend user selected 3 passengers
+    #     "logged_in": True,        # change to False to test guest
+    #     "user": {
+    #         "first_name": "Sapir",
+    #         "last_name": "Bezalel",
+    #         "email": "sapir@test.com",
+    #         "phone": "0501234567"
+    #     }
+    # }
+    session["booking"]["num_passengers"] = 3
+    return redirect(url_for("passengers"))
+
+# Passengers details form
+@app.route("/passengers")
+def passengers():
+    booking = session.get("booking")
+#TODO change when will be a real session
+    if not booking:
+        return redirect(url_for("debug_start"))
+
+    return render_template(
+        "passengers.html",
+        num_passengers=booking["num_passengers"],
+        logged_in=booking["logged_in"],
+        user=booking.get("user"),
+        steps=STEPS,
+        current_step=1
+    )
 
 
 if __name__ == "__main__":
