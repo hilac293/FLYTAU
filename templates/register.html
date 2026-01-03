@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>פתיחת חשבון</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body>
+
+<div class="page">
+
+    <h1>פתיחת חשבון</h1>
+    <p class="subtitle">כמה פרטים קצרים ונוכל להמשיך להזמנה</p>
+
+    <form action="/register" method="post" class="form">
+
+        <!-- English names (allowing multiple words) -->
+        <input type="text" name="first_name" placeholder="שם פרטי (באנגלית)"
+               pattern="[A-Za-z ]+" title="Please enter letters only, spaces allowed" required>
+        <input type="text" name="last_name" placeholder="שם משפחה (באנגלית)"
+               pattern="[A-Za-z ]+" title="Please enter letters only, spaces allowed" required>
+
+        <!-- Email -->
+        <input type="email" name="email" placeholder="אימייל" required>
+
+        <!-- Phone numbers -->
+        <div id="phones">
+            <input type="tel" name="phones[]" placeholder="מספר טלפון" required>
+        </div>
+
+        <button type="button" class="add-phone" onclick="addPhone()">
+            + הוסף מספר טלפון
+        </button>
+
+        <!-- Passport number -->
+        <input type="text" name="passport" placeholder="מספר דרכון" required>
+
+        <!-- Birth date -->
+<input type="text" id="birth_date" name="birth_date" placeholder="תאריך לידה" required>
+
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/he.js"></script>
+<script>
+    flatpickr("#birth_date", {
+        "locale": "he",          // עברית
+        dateFormat: "Y-m-d",     // פורמט תאריך
+        maxDate: "today",        // לא ניתן לבחור תאריכים עתידיים
+        altInput: true,          // תצוגה קריאה למשתמש
+        altFormat: "d/m/Y"       // פורמט לקריאה נוחה
+    });
+</script>
+
+        <!-- Password -->
+        <!--
+            Requirements:
+            - At least 6 characters
+            - Must contain letters and numbers
+            - Only letters and numbers allowed
+        -->
+        <input type="password" id="password" name="password"
+               placeholder="סיסמה (באנגלית, לפחות 6 תווים, אותיות ומספרים)"
+               pattern="(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}"
+               title="Password must be at least 6 characters, contain letters and numbers"
+               required>
+
+        <!-- Password confirmation -->
+        <input type="password" id="confirm_password" name="confirm_password"
+               placeholder="אימות סיסמה" required>
+        <p id="password_error" class="error"></p>
+
+        <button type="submit">צור חשבון</button>
+
+    </form>
+
+</div>
+
+<script>
+function addPhone() {
+    // Add extra phone input dynamically
+    const div = document.getElementById("phones");
+    const input = document.createElement("input");
+    input.type = "tel";
+    input.name = "phones[]";
+    input.placeholder = "מספר טלפון נוסף";
+    div.appendChild(input);
+}
+
+// Client-side password confirmation check
+document.querySelector(".form").addEventListener("submit", function(e) {
+    const pass = document.getElementById("password").value;
+    const confirm = document.getElementById("confirm_password").value;
+    const errorEl = document.getElementById("password_error");
+    errorEl.innerText = ""; // clear previous errors
+
+    if (pass !== confirm) {
+        e.preventDefault();
+        errorEl.innerText = "הסיסמאות אינן תואמות";
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,4 +1,5 @@
 from utils import get_connection  
+from datetime import datetime, date
 
 class Customer:
     def __init__(self, first_name, last_name, email, phones=None):
@@ -48,16 +49,16 @@ class Guest(Customer):
 
         # Insert or update guest info
         cursor.execute("""
-            INSERT INTO Guests (email, first_name, last_name)
+            INSERT INTO guests (email, first_name, last_name)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE first_name=%s, last_name=%s
         """, (self.email, self.first_name, self.last_name,
               self.first_name, self.last_name))
 
         # Update phones
-        cursor.execute("DELETE FROM Guest_Phones WHERE email = %s", (self.email,))
+        cursor.execute("DELETE FROM guest_phones WHERE email = %s", (self.email,))
         for phone in self.phones:
-            cursor.execute("INSERT INTO Guest_Phones (email, phone_number) VALUES (%s, %s)",
+            cursor.execute("INSERT INTO guest_phones (email, phone_number) VALUES (%s, %s)",
                            (self.email, phone))
 
         conn.commit()
@@ -71,8 +72,8 @@ class Guest(Customer):
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE Guests SET email = %s WHERE email = %s", (self.email, old_email))
-        cursor.execute("UPDATE Guest_Phones SET email = %s WHERE email = %s", (self.email, old_email))
+        cursor.execute("UPDATE guests SET email = %s WHERE email = %s", (self.email, old_email))
+        cursor.execute("UPDATE guest_phones SET email = %s WHERE email = %s", (self.email, old_email))
 
         conn.commit()
         cursor.close()
@@ -88,29 +89,45 @@ class Registered(Customer):
         self.birth_date = birth_date
         self.registration_date = registration_date
         self.password = password
+        self.phones = phones or []
 
     def save_to_db(self):
         """
-        Insert or update Registered user in FLYTAU DB and update phones.
+        Insert or update registered user in FLYTAU DB and update phones.
         """
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
 
-        cursor.execute("""
-            INSERT INTO Registered
+        query = """
+            INSERT INTO registered
             (passport_number, first_name, last_name, email, birth_date, registration_date, password)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE first_name=%s, last_name=%s, email=%s,
             birth_date=%s, registration_date=%s, password=%s
-        """, (self.passport_number, self.first_name, self.last_name, self.email,
-              self.birth_date, self.registration_date, self.password,
-              self.first_name, self.last_name, self.email,
-              self.birth_date, self.registration_date, self.password))
+        """
+
+        params = (
+            self.passport_number, self.first_name, self.last_name, self.email,
+            self.birth_date, self.registration_date, self.password,  # VALUES
+            self.first_name, self.last_name, self.email,
+            self.birth_date, self.registration_date, self.password  # ON DUPLICATE KEY UPDATE
+        )
+
+        print("SQL Query:", query)
+        print("Parameters:", params)
+
+        # cursor.execute(query, params)
+
+        try:
+            cursor.execute(query, params)
+        except Exception as e:
+            print("SQL execution error:", e)
+            raise
 
         # Update phones
-        cursor.execute("DELETE FROM Registered_Phones WHERE passport_number = %s", (self.passport_number,))
+        cursor.execute("DELETE FROM registered_phones WHERE passport_number = %s", (self.passport_number,))
         for phone in self.phones:
-            cursor.execute("INSERT INTO Registered_Phones (passport_number, phone_number) VALUES (%s, %s)",
+            cursor.execute("INSERT INTO registered_phones (passport_number, phone_number) VALUES (%s, %s)",
                            (self.passport_number, phone))
 
         conn.commit()
@@ -119,12 +136,12 @@ class Registered(Customer):
 
     def update_email_in_db(self, old_email):
         """
-        Update email in Registered table
+        Update email in registered table
         """
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE Registered SET email = %s WHERE email = %s", (self.email, old_email))
+        cursor.execute("UPDATE registered SET email = %s WHERE email = %s", (self.email, old_email))
 
         conn.commit()
         cursor.close()
@@ -140,7 +157,7 @@ class Registered(Customer):
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE Registered SET password = %s WHERE passport_number = %s",
+            "UPDATE registered SET password = %s WHERE passport_number = %s",
             (self.password, self.passport_number)
         )
         conn.commit()
