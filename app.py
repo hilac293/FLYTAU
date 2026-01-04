@@ -302,6 +302,21 @@ def logout():
     session.clear()
     return redirect("/")
 
+@app.route("/homepage")
+def idan_home():
+    # ברירת מחדל: הלוך-חזור
+    flight_type = "2way"
+    return render_template("HomePage-idan.html", flight_type=flight_type)
+
+@app.route("/homepage/1way")
+def idan_home_1way():
+    return render_template("HomePage-idan-1way.html")  # יעד, תאריך יציאה, נוסעים
+
+@app.route("/homepage/all")
+def idan_home_all():
+    return render_template("HomePage-idan-all.html")  # תאריך יציאה, נוסעים
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
