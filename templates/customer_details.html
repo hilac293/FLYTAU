@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>פרטי לקוח</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='customer_details.css') }}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+<!-- Progress steps -->
+<div class="progress-steps">
+    <div class="line-active" style="width: {{ current_step * 25 }}%;"></div>
+    <div class="step">פרטי לקוח</div>
+    <div class="step">בחירת מושבים</div>
+    <div class="step">סיכום הזמנה</div>
+    <div class="step">תשלום</div>
+</div>
+
+<!-- Card with form -->
+<div class="card">
+
+    <h2>פרטי לקוח</h2>
+
+    <form method="post">
+
+        <!-- First Name -->
+        <div class="field">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" name="first_name" placeholder="שם פרטי (באנגלית)" required
+                   value="{{ user.first_name if user else '' }}">
+        </div>
+
+        <!-- Last Name -->
+        <div class="field">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" name="last_name" placeholder="שם משפחה (באנגלית)" required
+                   value="{{ user.last_name if user else '' }}">
+        </div>
+
+        <!-- Email -->
+        <div class="field">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" name="email" placeholder="אימייל" required
+                   {% if logged_in %}readonly{% endif %}
+                   value="{{ user.email if user else '' }}">
+        </div>
+
+               <!-- Phone 1 -->
+        <div class="field">
+                <i class="fa-solid fa-phone"></i>
+            <input type="tel"
+                   name="phone_1"
+                   placeholder="מספר טלפון"
+                   value="{{ user.phones[0] if user and user.phones|length > 0 else '' }}">
+        </div>
+
+        <!-- Phone 2 -->
+        <div class="field">
+                <i class="fa-solid fa-phone"></i>
+            <input type="tel"
+                   name="phone_2"
+                   placeholder="מספר טלפון נוסף (אופציונלי)"
+                   value="{{ user.phones[1] if user and user.phones|length > 1 else '' }}">
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="submit-btn">המשך</button>
+
+    </form>
+</div>
+
+
+</body>
+</html>

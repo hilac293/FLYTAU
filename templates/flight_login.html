@@ -22,7 +22,11 @@
             <div class="card login-card">
                 <h2>התחברות לחשבון</h2>
 
-                <form action="/login" method="post">
+            {% if error %}
+              <div class="error-message">{{ error }}</div>
+            {% endif %}
+
+                <form action="/customer-login" method="post">
                     <input type="email" name="email" placeholder="אימייל" required>
                     <input type="password" name="password" placeholder="סיסמה" required>
                     <button type="submit">התחבר והמשך</button>

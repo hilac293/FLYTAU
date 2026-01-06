@@ -1,4 +1,6 @@
-from utils import get_connection  
+from werkzeug.security import check_password_hash
+
+from utils import get_connection
 from datetime import datetime, date
 
 class Customer:
@@ -64,6 +66,7 @@ class Guest(Customer):
         conn.commit()
         cursor.close()
         conn.close()
+
 
     def update_email_in_db(self, old_email):
         """
@@ -134,6 +137,57 @@ class Registered(Customer):
         cursor.close()
         conn.close()
 
+    @classmethod
+    def find_by_email(cls, email):
+        """
+        Find a registered user in the database by email.
+        Returns:
+            - Registered object if user exists
+            - None if no user is found
+        """
+        # 1️⃣ Connect to database
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)  # use dictionary for easier access
+
+        # 2️⃣ Fetch user basic information from 'registered' table
+        cursor.execute(
+            "SELECT * FROM registered WHERE email = %s",
+            (email,)
+        )
+        user_row = cursor.fetchone()
+
+        # 3️⃣ If user not found, close connection and return None
+        if not user_row:
+            cursor.close()
+            conn.close()
+            return None
+
+        passport_number = user_row["passport_number"]
+
+        # 4️⃣ Fetch user's phone numbers from 'registered_phones' table
+        cursor.execute(
+            "SELECT phone_number FROM registered_phones WHERE passport_number = %s",
+            (passport_number,)
+        )
+        phones_rows = cursor.fetchall()
+        phones = [row["phone_number"] for row in phones_rows]  # convert to list
+
+        # 5️⃣ Close database connection
+        cursor.close()
+        conn.close()
+
+        # 6️⃣ Create and return a Registered object
+        return cls(
+            first_name=user_row["first_name"],
+            last_name=user_row["last_name"],
+            email=user_row["email"],
+            passport_number=user_row["passport_number"],
+            birth_date=user_row["birth_date"],
+            registration_date=user_row["registration_date"],
+            password=user_row["password"],
+            phones=phones
+        )
+
     def update_email_in_db(self, old_email):
         """
         Update email in registered table
@@ -148,12 +202,26 @@ class Registered(Customer):
         conn.close()
 
 
-    def check_password(self, input_password):
-        return self.password == input_password
-        
 
+    # --- Check if the input password matches the hashed password ---
+    def check_password(self, input_password):
+        """
+        Check if the input_password matches the hashed password stored in the DB.
+        """
+        if not self.password:
+            return False
+        return check_password_hash(self.password, input_password)
+
+    # --- Update password in the database ---
     def update_password(self, new_password):
-        self.password = new_password
+        """
+        Hash the new password and update it in the database.
+        """
+        # 1️⃣ Hash the new password
+        hashed_password = generate_password_hash(new_password)
+        self.password = hashed_password
+
+        # 2️⃣ Connect to DB and update
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
         cursor.execute(

@@ -1,0 +1,154 @@
+/* ===== Body & global ===== */
+body {
+    margin: 0;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-image: url("/static/imgs/background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+    direction: rtl;
+}
+
+/* ===== Progress bar container ===== */
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    width: 90%;
+    margin: 30px auto 50px auto;
+    height: 40px; /* make space for text above line */
+}
+
+/* Full background line (light) */
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-50%);
+    z-index: 1;
+    border-radius: 2px;
+}
+
+/* Active portion of the line */
+.progress-steps .line-active {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    height: 4px;
+    background-color: #1a73e8;
+    transform: translateY(-50%);
+    z-index: 2;
+    border-radius: 2px;
+}
+
+/* Step text */
+.step {
+    z-index: 3;
+    font-weight: bold;
+    color: #1558b0;
+    text-align: center;
+    flex: 1;
+    position: relative;
+    top: -12px;
+}
+
+
+/* ===== Card / form ===== */
+.card {
+    max-width: 500px;
+    margin: 0 auto 50px auto;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 35px;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    text-align: right;
+}
+
+/* Form heading */
+h2 {
+    margin-top: 0;
+    color: #0b3c78;
+    text-align: center;
+}
+
+/* Form fields */
+.field {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #355f8a;
+}
+
+.field input[type="text"],
+.field input[type="email"],
+.field input[type="tel"] {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #cfddee;
+    box-sizing: border-box;
+}
+
+.field i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #1a73e8;
+    font-size: 16px;
+}
+
+/* Readonly field style */
+input[readonly] {
+    background-color: #e8f0fe;
+}
+
+/* Add phone button */
+.add-phone {
+    background: none;
+    border: none;
+    color: #1a73e8;
+    cursor: pointer;
+    text-align: right;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.add-phone i {
+    margin-left: 6px;
+}
+
+.add-phone:hover {
+    color: #1558b0;
+}
+
+/* Submit button */
+button.submit-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button.submit-btn:hover {
+    background-color: #1558b0;
+}
+
+
