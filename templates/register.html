@@ -25,13 +25,22 @@
         <input type="email" name="email" placeholder="אימייל" required>
 
         <!-- Phone numbers -->
-        <div id="phones">
-            <input type="tel" name="phones[]" placeholder="מספר טלפון" required>
+        <div class="field">
+            <i class="fa-solid fa-phone"></i>
+            <input type="tel"
+                   name="phone_1"
+                   placeholder="מספר טלפון"
+                   value="{{ user.phones[0] if user and user.phones|length > 0 else '' }}">
         </div>
 
-        <button type="button" class="add-phone" onclick="addPhone()">
-            + הוסף מספר טלפון
-        </button>
+        <div class="field">
+            <i class="fa-solid fa-phone"></i>
+            <input type="tel"
+                   name="phone_2"
+                   placeholder="מספר טלפון נוסף (אופציונלי)"
+                   value="{{ user.phones[1] if user and user.phones|length > 1 else '' }}">
+        </div>
+
 
         <!-- Passport number -->
         <input type="text" name="passport" placeholder="מספר דרכון" required>
@@ -76,30 +85,6 @@
 
 </div>
 
-<script>
-function addPhone() {
-    // Add extra phone input dynamically
-    const div = document.getElementById("phones");
-    const input = document.createElement("input");
-    input.type = "tel";
-    input.name = "phones[]";
-    input.placeholder = "מספר טלפון נוסף";
-    div.appendChild(input);
-}
-
-// Client-side password confirmation check
-document.querySelector(".form").addEventListener("submit", function(e) {
-    const pass = document.getElementById("password").value;
-    const confirm = document.getElementById("confirm_password").value;
-    const errorEl = document.getElementById("password_error");
-    errorEl.innerText = ""; // clear previous errors
-
-    if (pass !== confirm) {
-        e.preventDefault();
-        errorEl.innerText = "הסיסמאות אינן תואמות";
-    }
-});
-</script>
 
 </body>
 </html>

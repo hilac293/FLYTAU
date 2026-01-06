@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, redirect, session
 from datetime import datetime, timedelta
 
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
-from Customers import Registered
-from utils import get_connection
+from Customers import Registered, Guest
+from utils import get_connection, ensure_booking
 from flights_and_workers import Flight
 from func_for_flights import (
     get_available_planes,
@@ -19,7 +19,7 @@ app.secret_key = "secret123"
 # Steps for the progress bar
 STEPS = [
     "פרטי נוסעים",
-    "תוספות",
+    "בחירת מושבים",
     "סיכום פרטי הזמנה",
     "תשלום"
 ]
@@ -442,6 +442,48 @@ def search_flights():
 def flight_login():
     return render_template("flight_login.html")
 
+#coniniue as a guest
+@app.route("/guest", methods=["POST"])
+def continue_as_guest():
+    session["booking"] = {
+        "logged_in": False
+    }
+    return redirect(url_for("customer_details"))
+
+@app.route("/customer-login", methods=["GET", "POST"])
+def customer_login():
+    error = None  # variable to store the message
+
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        user = Registered.find_by_email(email)
+        if not user:
+            error = "משתמש עם המייל הזה לא נמצא"
+        elif not check_password_hash(user.password, password):
+            error = "סיסמה שגויה"
+        else:
+            # Login successful
+            session["logged_in"] = True
+            session["user_email"] = user.email
+            session["user_name"] = f"{user.first_name} {user.last_name}"
+            return redirect(url_for("customer_details"))
+            # Add user info to booking for autofill
+            session["booking"] = session.get("booking", {})
+            session["booking"]["user"] = {
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "phones": user.phones
+            }
+            session["booking"]["logged_in"] = True
+
+    return render_template("flight_login.html", error=error)
+
+
+
+
 #register
 
 @app.route("/register", methods=["GET", "POST"])
@@ -459,7 +501,14 @@ def register():
         birth_date = request.form.get("birth_date")
         password = request.form.get("password")
         confirm_password = request.form.get("confirm_password")
-        phones = request.form.getlist("phones[]")
+        phone_1 = request.form.get("phone_1")
+        phone_2 = request.form.get("phone_2")
+
+        phones = []
+        if phone_1:
+            phones.append(phone_1)
+        if phone_2:
+            phones.append(phone_2)
 
         # 2. Check required fields
         if not all([first_name, last_name, email, passport, birth_date, password, confirm_password]):
@@ -506,12 +555,16 @@ def register():
         session["user_passport"] = user.passport_number
         session["user_email"] = user.email
         session["user_name"] = f"{user.first_name} {user.last_name}"
-
+        # Ensure session['booking'] exists
+        if "booking" not in session:
+            session["booking"] = {}
+        # Add user info to booking
+        session["booking"]["logged_in"] = True
         session["booking"]["user"] = {
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "email": user.email,
-                "phone": user.phones[0]
+                "phone": user.phones
             }
 
         flash("הרשמה בוצעה בהצלחה! אתה מחובר עכשיו.")
@@ -526,35 +579,81 @@ def register():
 
 @app.route("/debug/start")
 def debug_start():
-    # session["booking"] = {
-    #     "num_passengers": 3,      # pretend user selected 3 passengers
-    #     "logged_in": True,        # change to False to test guest
-    #     "user": {
-    #         "first_name": "Sapir",
-    #         "last_name": "Bezalel",
-    #         "email": "sapir@test.com",
-    #         "phone": "0501234567"
-    #     }
-    # }
-    session["booking"]["num_passengers"] = 3
-    return redirect(url_for("passengers"))
+    """
+    Fake session for development.
+    Only sets default booking values for testing.
+    Does NOT overwrite existing 'user' to preserve real registered user info.
+    """
+    if "booking" not in session:
+        session["booking"] = {}
 
-# Passengers details form
-@app.route("/passengers")
-def passengers():
+    booking = session["booking"]
+    # Set default number of passengers if not already set
+    booking.setdefault("num_passengers", 3)
+    # Set default logged_in status if not already set
+    booking.setdefault("logged_in", False)
+    # Do NOT overwrite 'user' if it already exists
+    session["booking"] = booking
+
+    # Redirect to customer details page
+    return redirect(url_for("customer_details"))
+
+
+
+
+
+@app.route("/customer-details", methods=["GET", "POST"])
+def customer_details():
     booking = session.get("booking")
-#TODO change when will be a real session
-    if not booking:
-        return redirect(url_for("debug_start"))
+
+    if request.method == "POST":
+        first_name = request.form.get("first_name")
+        last_name = request.form.get("last_name")
+        email = request.form.get("email")
+        phone_1 = request.form.get("phone_1")
+        phone_2 = request.form.get("phone_2")
+
+        phones = []
+        if phone_1:
+            phones.append(phone_1)
+        if phone_2:
+            phones.append(phone_2)
+
+        # Save to session
+        booking["customer"] = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "phones": phones
+        }
+        session["booking"] = booking
+
+        # Save guest if not logged in
+        if not booking.get("logged_in"):
+            guest = Guest(
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                phones=phones
+            )
+            guest.save_to_db()
+
+        return redirect(url_for("next_step"))  # continue to next step
+
+    # GET request: autofill
+    customer = booking.get("user") if booking.get("logged_in") else booking.get("customer")
 
     return render_template(
-        "passengers.html",
-        num_passengers=booking["num_passengers"],
-        logged_in=booking["logged_in"],
-        user=booking.get("user"),
+        "customer_details.html",
+        num_passengers=booking.get("num_passengers", 1),
+        logged_in=booking.get("logged_in", False),
+        user=customer,
         steps=STEPS,
         current_step=1
     )
+
+
+
 
 
 if __name__ == "__main__":
