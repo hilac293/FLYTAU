@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>צריכים אותנו?</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='idan-home.css') }}">
+    <style>
+
+        body.idan-home {
+            background: url('{{ url_for('static', filename='imgs/background.png') }}') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            gap: 16px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 100;
+        }
+
+        .header .link {
+            text-decoration: none;
+            color: var(--blue);
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 100px auto 50px auto; /* השאר מקום ל-header */
+            background: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* set char limit */
+        .char-limit {
+            color: gray;
+            font-size: 0.85rem;
+            margin-top: 3px;
+            display: block;
+        }
+
+        /* send button design */
+        .submit-row {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .submit-row button {
+            margin-left: 20px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .success {
+            color: green;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="idan-home">
+
+  <!-- Header -->
+  <div class="header">
+      <a href="{{ url_for('idan_home') }}" class="link">חזרה לדף הבית</a>
+  </div>
+
+  <div class="container">
+      <h2>נשמח לעזור לכם בכל בקשה ופניה</h2>
+      <p>
+          אנא מלאו את הפרטים בטופס הבא ונחזור אליכם תוך 48 שעות.<br>
+          לנושאים דחופים בלבד נא ליצור קשר בטלפון 03-555555
+      </p>
+
+      <form method="POST">
+          <label for="title">כותרת</label>
+          <input type="text" id="title" name="title" maxlength="30" required>
+          <span class="char-limit">מגבלה: עד 30 תווים</span>
+
+          <label for="email">דוא"ל ליצירת קשר</label>
+          <input type="email" id="email" name="email" required>
+
+          <label for="details">פרטי הפניה</label>
+          <textarea id="details" name="details" maxlength="500" rows="6" required></textarea>
+          <span class="char-limit">מגבלה: עד 500 תווים</span>
+
+          <div class="submit-row">
+              <button type="submit">שלח</button>
+              {% if message_sent %}
+                  <span class="success">פנייתכם התקבלה ותטופל תוך 48 שעות</span>
+              {% endif %}
+          </div>
+      </form>
+  </div>
+</body>
+</html>

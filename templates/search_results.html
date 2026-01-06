@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>תוצאות חיפוש טיסות</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 10px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<h1>תוצאות חיפוש טיסות</h1>
+
+{% if flights %}
+    <p>נמצאו {{ flights|length }} טיסות זמינות ל-{{ passengers }} נוסעים</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>מספר טיסה</th>
+                <th>מקור</th>
+                <th>יעד</th>
+                <th>תאריך ושעה</th>
+                <th>מחיר רגיל</th>
+                <th>מחיר עסקים</th>
+                <th>פעולה</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for flight in flights %}
+            <tr>
+                <td>{{ flight.flight_id }}</td>
+                <td>{{ flight.origin }}</td>
+                <td>{{ flight.destination }}</td>
+                <td>{{ flight.departure_datetime }}</td>
+                <td>{{ flight.regular_price }} ₪</td>
+                <td>{{ flight.business_price }} ₪</td>
+                <td>
+                    <form action="/book-flight" method="POST">
+                        <input type="hidden" name="flight_id" value="{{ flight.flight_id }}">
+                        <input type="hidden" name="passengers" value="{{ passengers }}">
+                        <button type="submit" class="btn">בחר טיסה</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p class="message">לא נמצאו טיסות זמינות לפי החיפוש שלך.</p>
+{% endif %}
+
+<a href="/homepage" class="btn">חזור לדף הבית</a>
+
+</body>
+</html>

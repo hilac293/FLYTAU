@@ -317,6 +317,78 @@ def idan_home_all():
     return render_template("HomePage-idan-all.html")  # תאריך יציאה, נוסעים
 
 
+@app.route("/contact-us", methods=["GET", "POST"])
+def contact_us():
+    message_sent = False
+    if request.method == "POST":
+        title = request.form.get("title")
+        email = request.form.get("email")
+        details = request.form.get("details")
+
+        # כאן אפשר לשלוח לדאטהבייס או אימייל אם רוצים
+        # לדוגמה: save_contact(title, email, details)
+
+        message_sent = True  # נשתמש בזה כדי להציג את ההודעה בצד הכפתור
+
+    return render_template("contact_us.html", message_sent=message_sent)
+
+@app.route("/search-flights", methods=["POST"])
+def search_flights():
+    origin = request.form.get("source")
+    destination = request.form.get("destination")
+    departure_date = request.form.get("departure")
+    passengers = int(request.form.get("passengers", 1))
+
+    conn = get_connection("FLYTAU")
+    cursor = conn.cursor(dictionary=True)
+
+    # --- קבלת טיסות לפי מקור, יעד ותאריך ---
+    cursor.execute("""
+        SELECT f.flight_id, f.departure_datetime, f.origin, f.destination,
+               f.regular_price, f.business_price, f.plane_id
+        FROM Flights f
+        WHERE f.origin = %s AND f.destination = %s
+          AND DATE(f.departure_datetime) = %s
+          AND f.flight_status = 'active'
+    """, (origin, destination, departure_date))
+
+    flights = cursor.fetchall()
+    results = []
+
+    for flight in flights:
+        # --- בדיקה כמה מושבים פנויים ---
+        # קבלת מספר מושבים בטיסה
+        cursor.execute("""
+            SELECT SUM(pc.rows_number * pc.columns_number) AS total_seats
+            FROM plane_class pc
+            WHERE pc.plane_id = %s
+        """, (flight['plane_id'],))
+        plane_info = cursor.fetchone()
+        total_seats = plane_info['total_seats'] or 0
+
+        # מושבים תפוסים
+        cursor.execute("""
+            SELECT COUNT(bs.seat_number) AS occupied_seats
+            FROM Booking_Seats bs
+            JOIN orders o ON o.order_id = bs.order_id
+            WHERE o.flight_id = %s AND o.order_status != 'cancelled_by_customer'
+        """, (flight['flight_id'],))
+
+        occupied_info = cursor.fetchone()
+        occupied_seats = occupied_info['occupied_seats'] or 0
+
+        available_seats = total_seats - occupied_seats
+
+        if available_seats >= passengers:
+            results.append(flight)
+
+    cursor.close()
+    conn.close()
+
+    return render_template("search_results.html", flights=results, passengers=passengers)
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

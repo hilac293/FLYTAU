@@ -5,6 +5,33 @@
     <title>FLYTAU - הכי בבית בעולם</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='idan-home.css') }}">
+    <style>
+        /* רווחים ואווריריות לשדות הטופס */
+        .form-grid {
+            display: flex;
+            flex-direction: column; /* כל שדה בשורה מלאה */
+            gap: 20px; /* רווח בין השדות */
+        }
+
+        .form-grid .field input,
+        .form-grid .field textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .form-grid .field label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .actions button {
+            margin-top: 20px; /* רווח מעל הכפתור */
+        }
+    </style>
 </head>
 <body class="dashboard-page idan-home"
       style="background: url('{{ url_for('static', filename='imgs/background.png') }}') no-repeat center center fixed;
@@ -14,7 +41,7 @@
   <div class="header">
       <a href="#" class="link">הרשמה</a>
       <a href="#" class="link">התחברות</a>
-      <a href="#" class="link">צריכים אותנו?</a>
+      <a href="{{ url_for('contact_us') }}" class="link">צריכים אותנו?</a>
   </div>
 
   <!-- Container מרכזי לכל התוכן -->
@@ -33,52 +60,40 @@
           <button class="btn btn-ghost" style="margin: 0;">היסטוריית רכישות</button>
       </div>
 
-      <!-- טופס חיפוש טיסה -->
-      <div class="card">
+   <!-- טופס חיפוש טיסה -->
+<div class="card">
+    <form method="POST" action="{{ url_for('search_flights') }}" class="form-grid">
+        <div class="field">
+            <label for="source">מקור</label>
+            <input list="airports" id="source" name="source" placeholder="הקלד עיר או נמל תעופה" required>
+            <datalist id="airports">
+                <option value="תל אביב - נתב״ג">
+                <option value="אילת">
+                <option value="לונדון">
+                <option value="פריז">
+                <option value="ניו יורק">
+            </datalist>
+        </div>
 
-          <!-- כפתורי סוג טיסה בתוך הטבלה, מעל השדות -->
-          <div class="flight-type-buttons">
-              <a href="{{ url_for('idan_home') }}" class="btn btn-primary small-btn">הלוך-חזור</a>
-              <a href="{{ url_for('idan_home_1way') }}" class="btn btn-ghost small-btn">כיוון אחד</a>
-              <a href="{{ url_for('idan_home_all') }}" class="btn btn-ghost small-btn">כל היעדים</a>
-          </div>
+        <div class="field">
+            <label for="destination">יעד</label>
+            <input list="airports" id="destination" name="destination" placeholder="הקלד עיר או נמל תעופה" required>
+        </div>
 
-          <div class="form-grid">
-              <div class="field">
-                  <label for="source">מקור</label>
-                  <input list="airports" id="source" placeholder="הקלד עיר או נמל תעופה">
-                  <datalist id="airports">
-                    <option value="תל אביב - נתב״ג">
-                    <option value="חיפה">
-                    <option value="אילת">
-                    <option value="ירושלים">
-                    <option value="לונדון">
-                    <option value="פריז">
-                    <option value="ניו יורק">
-                  </datalist>
-              </div>
-              <div class="field">
-                  <label for="destination">יעד</label>
-                  <input list="airports" id="destination" placeholder="הקלד עיר או נמל תעופה">
-              </div>
-              <div class="field">
-                  <label for="departure">תאריך יציאה</label>
-                  <input type="date" id="departure">
-              </div>
-              <div class="field">
-                  <label for="return">תאריך חזרה</label>
-                  <input type="date" id="return">
-              </div>
-              <div class="field">
-                  <label for="passengers">מספר נוסעים</label>
-                  <input type="number" id="passengers" min="1" value="1">
-              </div>
-          </div>
+        <div class="field">
+            <label for="departure">תאריך יציאה</label>
+            <input type="date" id="departure" name="departure" required>
+        </div>
 
-          <div class="actions">
-              <button class="btn btn-primary">חיפוש טיסה</button>
-          </div>
-      </div>
-  </div>
+        <div class="field">
+            <label for="passengers">מספר נוסעים</label>
+            <input type="number" id="passengers" name="passengers" min="1" value="1" required>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">חיפוש טיסה</button>
+        </div>
+    </form>
+</div>
 </body>
 </html>
