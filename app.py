@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, session
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from utils import get_connection
 from flights_and_workers import Flight
@@ -302,11 +302,31 @@ def logout():
     session.clear()
     return redirect("/")
 
+
 @app.route("/homepage")
 def idan_home():
     # ברירת מחדל: הלוך-חזור
     flight_type = "2way"
-    return render_template("HomePage-idan.html", flight_type=flight_type)
+
+    now = datetime.now()
+
+    # מינימום: היום, אם טיסה אחרי השעה הנוכחית
+    min_date = now.date()
+
+    # מקסימום: שנה מהיום
+    max_date = now.date() + timedelta(days=365)
+
+    # פורמט YYYY-MM-DD הדרוש ל-input type=date
+    min_date_str = min_date.strftime('%Y-%m-%d')
+    max_date_str = max_date.strftime('%Y-%m-%d')
+
+    return render_template(
+        "HomePage-idan.html",
+        flight_type=flight_type,
+        min_date=min_date_str,
+        max_date=max_date_str
+    )
+
 
 @app.route("/homepage/1way")
 def idan_home_1way():
@@ -350,6 +370,7 @@ def search_flights():
         WHERE f.origin = %s AND f.destination = %s
           AND DATE(f.departure_datetime) = %s
           AND f.flight_status = 'active'
+          AND f.departure_datetime > NOW()
     """, (origin, destination, departure_date))
 
     flights = cursor.fetchall()
@@ -384,6 +405,9 @@ def search_flights():
 
     cursor.close()
     conn.close()
+
+    session['search_results'] = results
+    session['search_passengers'] = passengers
 
     return render_template("search_results.html", flights=results, passengers=passengers)
 
