@@ -3,49 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <title>תוצאות חיפוש טיסות</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='idan-home.css') }}">
     <style>
-        body {
+        body.search-results {
+            background: url('{{ url_for('static', filename='imgs/background.png') }}') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 80px;
             font-family: Arial, sans-serif;
             direction: rtl;
-            text-align: right;
-            margin: 20px;
+            color: var(--text);
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+
+        h1 {
             margin-bottom: 20px;
+            color: #08315f;
         }
-        th, td {
-            border: 1px solid #aaa;
-            padding: 10px;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
+
         .message {
             margin-bottom: 20px;
             font-weight: bold;
             color: green;
         }
+
+        table {
+            width: 100%;
+            max-width: 900px;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.85);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(12,44,90,0.12);
+        }
+
+        th, td {
+            border: 1px solid #d7e0ee;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background: #eaf3ff;
+            color: #0b3a72;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover td {
+            background: #f7fbff;
+        }
+
+        .btn {
+            appearance: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: 0.15s;
+            color: #fff;
+            background: linear-gradient(90deg, var(--blue), var(--blue2));
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        /* כפתור חזרה קטן וממוקם במרכז */
+        .home-btn {
+            margin-top: 20px;
+            padding: 6px 12px;      /* קטן יותר */
+            font-size: 13px;        /* טקסט קטן יותר */
+            width: auto;            /* אורך לפי הטקסט בלבד */
+            display: inline-block;  /* אפשר למרכז אותו */
+            text-align: center;
+        }
+
+        @media (max-width: 820px){
+            table{ min-width: 0; font-size: 13px; }
+            th, td{ padding: 8px; }
+        }
     </style>
 </head>
-<body>
-
-<h1>תוצאות חיפוש טיסות</h1>
+<body class="search-results">
 
 {% if flights %}
-    <p>נמצאו {{ flights|length }} טיסות זמינות ל-{{ passengers }} נוסעים</p>
+    <h1>תחזיקו חזק... אנחנו ממריאים!</h1>
+    <p>מצאנו {{ flights|length }} טיסות שזמינות ל-{{ passengers }} נוסעים</p>
 
     <table>
         <thead>
@@ -83,7 +134,8 @@
     <p class="message">לא נמצאו טיסות זמינות לפי החיפוש שלך.</p>
 {% endif %}
 
-<a href="/homepage" class="btn">חזור לדף הבית</a>
+<a href="/homepage" class="btn home-btn">חזור לדף הבית</a>
+
 
 </body>
 </html>

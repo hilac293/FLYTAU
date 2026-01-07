@@ -81,9 +81,11 @@
         </div>
 
         <div class="field">
-            <label for="departure">תאריך יציאה</label>
-            <input type="date" id="departure" name="departure" required>
-        </div>
+    <label for="departure">תאריך יציאה</label>
+    <input type="date" id="departure" name="departure"
+           min="{{ min_date }}" max="{{ max_date }}" required>
+</div>
+
 
         <div class="field">
             <label for="passengers">מספר נוסעים</label>
@@ -94,6 +96,7 @@
             <button type="submit" class="btn btn-primary">חיפוש טיסה</button>
         </div>
     </form>
+</div>
 </div>
 </body>
 </html>
