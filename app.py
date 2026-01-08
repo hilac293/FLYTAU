@@ -358,6 +358,17 @@ def search_flights():
     destination = request.form.get("destination")
     departure_date = request.form.get("departure")
     passengers = int(request.form.get("passengers", 1))
+    if origin == destination:
+        error_message = "אופס, נראה שהמקור והיעד שבחרת זהים"
+        return render_template(
+                "HomePage-idan.html",
+        min_date=(datetime.now().date()).strftime('%Y-%m-%d'),
+        max_date=(datetime.now().date() + timedelta(days=365)).strftime('%Y-%m-%d'),
+        error_message=error_message,
+        prev_source=origin,
+        prev_destination=destination,
+        prev_departure=departure_date,
+        prev_passengers=passengers)
 
     conn = get_connection("FLYTAU")
     cursor = conn.cursor(dictionary=True)
