@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}פרטי הלקוח - FLYTAU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='flight_login.css') }}">
+{% endblock %}
+
+{% block content %}
+<body>
+
+<div class="overlay">
+
+    <div class="page">
+
+        <div class="header">
+            <h1>עוד רגע ממשיכים ✈️</h1>
+            <p>כדי להשלים את ההזמנה, נצטרך כמה פרטים קצרים</p>
+        </div>
+
+        <div class="container">
+
+            <!-- התחברות -->
+            <div class="card login-card">
+                <h2>התחברות לחשבון</h2>
+
+            {% with messages = get_flashed_messages(category_filter=["error"]) %}
+              {% if messages %}
+                <div class="error-message">
+                  {{ messages[0] }}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+                <form action="/customer-login" method="post">
+                    <input type="email" name="email" placeholder="אימייל" required value="{{ email }}">
+                    <input type="password" name="password" placeholder="סיסמה" required>
+                    <button type="submit">התחבר והמשך</button>
+                </form>
+            </div>
+
+            <!-- אורח / הרשמה -->
+            <div class="card guest-card">
+                <h2>המשך כאורח</h2>
+
+                <form action="/guest" method="post">
+                    <button class="secondary" type="submit">המשך ללא התחברות</button>
+                </form>
+
+                <div class="benefits">
+                    <p>הרשמן עכשיו ותהנו מהטבות ייחודיות למועדון הלקוחות האקסקלוסיבי שלנו</p>
+
+                    <a class="register-link" href="/register">לפתיחת חשבון</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+{% endblock %}

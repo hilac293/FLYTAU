@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}דף הבית - FLYTAU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='payment.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
+
+{% endblock %}
+
+{% block content %}
+<body>
+
+<!-- Progress bar -->
+<div class="progress-steps">
+    <div class="line-active" style="width: {{ current_step * 25 }}%;"></div>
+    {% for step in steps %}
+        <div class="step">{{ step }}</div>
+    {% endfor %}
+</div>
+
+<!-- Card -->
+<div class="card">
+
+    <h2>תשלום בכרטיס אשראי</h2>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <!-- Order summary -->
+    <div class="section-title">סיכום הזמנה</div>
+    <div class="flight-info">
+        <p><span class="label">סך לתשלום:</span> {{ booking.total_amount }} ₪</p>
+    </div>
+
+    <!-- Payment form -->
+    <form method="post" class="payment-form">
+
+        <div class="field">
+            <label for="card_number">מספר כרטיס</label>
+            <input type="text" id="card_number" name="card_number" autocomplete="on" placeholder="1234 5678 9012 3456"
+                   maxlength="19" required>
+        </div>
+
+        <div class="field">
+            <label for="expiry">תוקף</label>
+            <input type="text" id="expiry" name="expiry" placeholder="MM/YY"
+                   maxlength="5" required>
+        </div>
+
+        <div class="field">
+            <label for="cvv">CVV</label>
+            <input type="text" id="cvv" name="cvv" placeholder="123"
+                   pattern="\d{3}" maxlength="3" required>
+        </div>
+
+        <button type="submit" class="submit-btn">תשלום</button>
+    </form>
+</div>
+
+<script>
+    // --- Format card number as 1234 5678 9012 3456 ---
+    const cardInput = document.getElementById("card_number");
+    cardInput.addEventListener("input", function(e) {
+        let value = this.value.replace(/\D/g, ""); // remove non-digits
+        value = value.substring(0,16); // max 16 digits
+        let formatted = "";
+        for(let i=0;i<value.length;i+=4){
+            if(i>0) formatted += " ";
+            formatted += value.substring(i,i+4);
+        }
+        this.value = formatted;
+    });
+
+    // --- Format expiry as MM/YY ---
+    const expiryInput = document.getElementById("expiry");
+    expiryInput.addEventListener("input", function(e){
+        let value = this.value.replace(/\D/g,""); // digits only
+        if(value.length>4) value = value.substring(0,4);
+        if(value.length>2){
+            value = value.substring(0,2) + "/" + value.substring(2);
+        }
+        this.value = value;
+    });
+</script>
+
+</body>
+{% endblock %}

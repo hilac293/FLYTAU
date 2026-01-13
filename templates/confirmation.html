@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}אישור הזמנה FLYTAU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='confirmation.css') }}">
+{% endblock %}
+
+
+{% block content %}
+<body>
+
+<div class="confirmation-container">
+    <img src="{{ url_for('static', filename='imgs/confirmation-dog.png') }}"
+         alt="Vacation Dog"
+         class="confirmation-image">
+
+    <h1>ההזמנה שלך אושרה בהצלחה! ✨</h1>
+    <p>אפשר להתחיל להתכונן לחופשה בלתי נשכחת ✈️🌴</p>
+
+</div>
+
+    <!-- Back to Home Button -->
+<div class="button-container">
+    <a href="{{ url_for('homepage') }}" class="home-btn">חזרה לדף הבית</a>
+</div>
+
+
+</body>
+{% endblock %}

@@ -1,0 +1,129 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-image: url("imgs/background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #0a2540;
+}
+
+.overlay {
+    min-height: 100vh;
+}
+
+
+.page {
+    padding: 40px;
+}
+
+.header {
+    text-align: right;
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    margin: 0;
+    color: #0b3c78;
+}
+
+.header p {
+    margin-top: 10px;
+    color: #355f8a;
+}
+
+.container {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 14px;
+    padding: 30px;
+    width: 350px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    text-align: right;
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: #0b3c78;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input {
+    margin-bottom: 15px;
+    padding: 12px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #cfddee;
+}
+
+button {
+    padding: 12px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background-color: #1a73e8;
+    color: white;
+}
+
+button:hover {
+    background-color: #1558b0;
+}
+
+button.secondary {
+    background-color: #e8f1ff;
+    color: #1a73e8;
+    border: 1px solid #1a73e8;
+}
+
+button.secondary:hover {
+    background-color: #d6e6ff;
+}
+
+.benefits {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #355f8a;
+}
+
+.benefits ul {
+    padding-right: 18px;
+    margin: 8px 0;
+}
+
+.register-link {
+    display: inline-block;
+    margin-top: 8px;
+    color: #1a73e8;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.register-link:hover {
+    text-decoration: underline;
+}
+
+
+.error-message {
+    background-color: rgba(255, 0, 0, 0.1); /* light red */
+    color: #b71c1c; /* dark red text */
+    padding: 10px;
+    border: 1px solid #f44336;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    text-align: right;
+}
+

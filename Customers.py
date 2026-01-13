@@ -1,4 +1,7 @@
-from utils import get_connection  
+from werkzeug.security import check_password_hash
+
+from utils import get_connection
+from datetime import datetime, date
 
 class Customer:
     def __init__(self, first_name, last_name, email, phones=None):
@@ -48,21 +51,93 @@ class Guest(Customer):
 
         # Insert or update guest info
         cursor.execute("""
-            INSERT INTO Guests (email, first_name, last_name)
+            INSERT INTO guests (email, first_name, last_name)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE first_name=%s, last_name=%s
         """, (self.email, self.first_name, self.last_name,
               self.first_name, self.last_name))
 
         # Update phones
-        cursor.execute("DELETE FROM Guest_Phones WHERE email = %s", (self.email,))
+        cursor.execute("DELETE FROM guest_phones WHERE email = %s", (self.email,))
         for phone in self.phones:
-            cursor.execute("INSERT INTO Guest_Phones (email, phone_number) VALUES (%s, %s)",
+            cursor.execute("INSERT INTO guest_phones (email, phone_number) VALUES (%s, %s)",
                            (self.email, phone))
 
         conn.commit()
         cursor.close()
         conn.close()
+
+    @staticmethod
+    def get_by_email(email):
+        """
+        Returns a Guest object if a guest with the given email exists in the database.
+        Also fetches the guest's phone numbers.
+        Returns None if no guest is found.
+        """
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+
+        try:
+            # --- Check if guest exists ---
+            cursor.execute("SELECT * FROM Guests WHERE email = %s", (email,))
+            guest_row = cursor.fetchone()
+
+            if not guest_row:
+                # No guest found
+                return None
+
+            # --- Fetch guest phones ---
+            cursor.execute("SELECT phone_number FROM Guest_Phones WHERE email = %s", (email,))
+            phone_rows = cursor.fetchall()
+            phones = [row["phone_number"] for row in phone_rows] if phone_rows else []
+
+            # --- Create Guest object with data ---
+            return Guest(
+                email=guest_row["email"],
+                first_name=guest_row.get("first_name", ""),
+                last_name=guest_row.get("last_name", ""),
+                phones=phones
+            )
+        finally:
+            cursor.close()
+            conn.close()
+
+
+
+    @staticmethod
+    def delete_by_email(email):
+        """
+        Deletes a guest and their phone numbers from the database based on email.
+        Use this when converting an existing guest into a registered user
+        to avoid duplicate email conflicts.
+        """
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor()
+
+        try:
+            # --- Delete phones first to maintain foreign key constraints ---
+            cursor.execute(
+                "DELETE FROM Guest_Phones WHERE email = %s",
+                (email,)
+            )
+
+            # --- Delete guest record ---
+            cursor.execute(
+                "DELETE FROM Guests WHERE email = %s",
+                (email,)
+            )
+
+            # --- Commit changes ---
+            conn.commit()
+
+        except Exception as e:
+            # Rollback in case of error
+            conn.rollback()
+            raise e
+        finally:
+            cursor.close()
+            conn.close()
+
 
     def update_email_in_db(self, old_email):
         """
@@ -71,8 +146,8 @@ class Guest(Customer):
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE Guests SET email = %s WHERE email = %s", (self.email, old_email))
-        cursor.execute("UPDATE Guest_Phones SET email = %s WHERE email = %s", (self.email, old_email))
+        cursor.execute("UPDATE guests SET email = %s WHERE email = %s", (self.email, old_email))
+        cursor.execute("UPDATE guest_phones SET email = %s WHERE email = %s", (self.email, old_email))
 
         conn.commit()
         cursor.close()
@@ -88,59 +163,152 @@ class Registered(Customer):
         self.birth_date = birth_date
         self.registration_date = registration_date
         self.password = password
+        self.phones = phones or []
 
     def save_to_db(self):
         """
-        Insert or update Registered user in FLYTAU DB and update phones.
+        Insert or update registered user in FLYTAU DB and update phones.
         """
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
 
-        cursor.execute("""
-            INSERT INTO Registered
+        query = """
+            INSERT INTO registered
             (passport_number, first_name, last_name, email, birth_date, registration_date, password)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE first_name=%s, last_name=%s, email=%s,
             birth_date=%s, registration_date=%s, password=%s
-        """, (self.passport_number, self.first_name, self.last_name, self.email,
-              self.birth_date, self.registration_date, self.password,
-              self.first_name, self.last_name, self.email,
-              self.birth_date, self.registration_date, self.password))
+        """
+
+        params = (
+            self.passport_number, self.first_name, self.last_name, self.email,
+            self.birth_date, self.registration_date, self.password,  # VALUES
+            self.first_name, self.last_name, self.email,
+            self.birth_date, self.registration_date, self.password  # ON DUPLICATE KEY UPDATE
+        )
+
+        print("SQL Query:", query)
+        print("Parameters:", params)
+
+        # cursor.execute(query, params)
+
+        try:
+            cursor.execute(query, params)
+        except Exception as e:
+            print("SQL execution error:", e)
+            raise
 
         # Update phones
-        cursor.execute("DELETE FROM Registered_Phones WHERE passport_number = %s", (self.passport_number,))
+        cursor.execute("DELETE FROM registered_phones WHERE passport_number = %s", (self.passport_number,))
         for phone in self.phones:
-            cursor.execute("INSERT INTO Registered_Phones (passport_number, phone_number) VALUES (%s, %s)",
+            cursor.execute("INSERT INTO registered_phones (passport_number, phone_number) VALUES (%s, %s)",
                            (self.passport_number, phone))
 
         conn.commit()
         cursor.close()
         conn.close()
 
+    @classmethod
+    def find_by_email(cls, email):
+        """
+        Find a registered user in the database by email.
+        Returns:
+            - Registered object if user exists
+            - None if no user is found
+        """
+        # 1️⃣ Connect to database
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)  # use dictionary for easier access
+
+        # 2️⃣ Fetch user basic information from 'registered' table
+        cursor.execute(
+            "SELECT * FROM registered WHERE email = %s",
+            (email,)
+        )
+        user_row = cursor.fetchone()
+
+        # 3️⃣ If user not found, close connection and return None
+        if not user_row:
+            cursor.close()
+            conn.close()
+            return None
+
+        passport_number = user_row["passport_number"]
+
+        # 4️⃣ Fetch user's phone numbers from 'registered_phones' table
+        cursor.execute(
+            "SELECT phone_number FROM registered_phones WHERE passport_number = %s",
+            (passport_number,)
+        )
+        phones_rows = cursor.fetchall()
+        phones = [row["phone_number"] for row in phones_rows]  # convert to list
+
+        # 5️⃣ Close database connection
+        cursor.close()
+        conn.close()
+
+        # 6️⃣ Create and return a Registered object
+        return cls(
+            first_name=user_row["first_name"],
+            last_name=user_row["last_name"],
+            email=user_row["email"],
+            passport_number=user_row["passport_number"],
+            birth_date=user_row["birth_date"],
+            registration_date=user_row["registration_date"],
+            password=user_row["password"],
+            phones=phones
+        )
+
+    @classmethod
+    def get_by_passport(cls, passport_number):
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Registered WHERE passport_number=%s", (passport_number,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if row:
+            return cls(**row)  # assuming constructor matches column names
+        return None
+
     def update_email_in_db(self, old_email):
         """
-        Update email in Registered table
+        Update email in registered table
         """
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE Registered SET email = %s WHERE email = %s", (self.email, old_email))
+        cursor.execute("UPDATE registered SET email = %s WHERE email = %s", (self.email, old_email))
 
         conn.commit()
         cursor.close()
         conn.close()
 
 
-    def check_password(self, input_password):
-        return self.password == input_password
-        
 
+    # --- Check if the input password matches the hashed password ---
+    def check_password(self, input_password):
+        """
+        Check if the input_password matches the hashed password stored in the DB.
+        """
+        if not self.password:
+            return False
+        return check_password_hash(self.password, input_password)
+
+    # --- Update password in the database ---
     def update_password(self, new_password):
-        self.password = new_password
+        """
+        Hash the new password and update it in the database.
+        """
+        # 1️⃣ Hash the new password
+        hashed_password = generate_password_hash(new_password)
+        self.password = hashed_password
+
+        # 2️⃣ Connect to DB and update
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
         cursor.execute(
-            "UPDATE Registered SET password = %s WHERE passport_number = %s",
+            "UPDATE registered SET password = %s WHERE passport_number = %s",
             (self.password, self.passport_number)
         )
         conn.commit()
