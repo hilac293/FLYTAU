@@ -1,0 +1,243 @@
+/* ===== Body & Global ===== */
+body {
+    margin: 0;
+    font-family: "Arial", sans-serif;
+    background-image: url("/static/imgs/background.png");
+    background-size: cover;
+    background-position: center;
+    color: #0b3c78;
+    direction: rtl;
+}
+
+/* ===== Progress Bar ===== */
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    width: 90%;
+    margin: 30px auto 50px auto;
+    height: 40px;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 4px;
+    background-color: rgba(11,60,120,0.2);
+    transform: translateY(-50%);
+    border-radius: 2px;
+}
+
+.progress-steps .line-active {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    height: 4px;
+    background-color: #1a73e8;
+    transform: translateY(-50%);
+    border-radius: 2px;
+}
+
+.step {
+    z-index: 3;
+    font-weight: bold;
+    color: #0b3c78;
+    text-align: center;
+    flex: 1;
+    position: relative;
+    top: -12px;
+}
+
+/* ===== Card ===== */
+.card {
+    max-width: 800px;
+    margin: 0 auto 50px auto;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 45px;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    text-align: right;
+}
+
+h2 {
+    text-align: center;
+    color: #0b3c78;
+    font-size: 26px;
+    margin-top: 0;
+}
+
+/* ===== Flight Graphic ===== */
+.flight-graphic {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 40px 0;
+}
+
+/* ===== Flight cities styling ===== */
+.flight-graphic .city {
+    font-weight: bold;
+    font-size: 22px;           /* bigger font for clarity */
+    color: #1a73e8;            /* professional blue */
+    background-color: rgba(26, 115, 232, 0.1); /* subtle background highlight */
+    padding: 6px 12px;         /* add padding for better readability */
+    border-radius: 8px;        /* rounded corners */
+    min-width: 80px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* subtle shadow for depth */
+    position: relative;
+    margin-top: 60px;
+}
+
+/* Flight time under the city */
+.flight-graphic .flight-time {
+    font-size: 14px;
+    font-weight: normal;
+    color: #0b3c78;         /* darker blue but subtle */
+    margin-top: 4px;        /* small space below city name */
+    display: block;
+}
+
+/* Ensure RTL spacing is correct */
+.flight-graphic .city:first-child::before {
+    margin-left: 0;
+    margin-right: 6px; /* icon on correct side for RTL */
+}
+
+
+/* Plane & curve container */
+/* Container for plane path */
+/* Container */
+.plane-path-container {
+    position: relative;
+    flex: 1;
+    height: 80px;
+}
+
+/* Curve path */
+.flight-curve {
+    width: 100%;
+    height: 80px;
+}
+
+/* Plane icon */
+.plane-icon {
+    position: absolute;
+    top: -40px; /* move plane up so it's on the curve */
+    left: 0;
+    font-size: 28px;
+    color: #1a73e8;
+    z-index: 10; /* on top of the curve */
+}
+
+
+/* Animate plane along the curve only once */
+@keyframes flyOnce {
+    0% { offset-distance: 0%; }
+    100% { offset-distance: 100%; }
+}
+
+.plane-icon i {
+    display: block;
+    offset-path: path("M10,70 C150,10 450,10 590,70"); /* same as your previous curve */
+    offset-rotate: auto;                      /* plane rotates along path */
+    animation: flyOnce 2s ease-in-out forwards; /* 2s animation, stops at destination */
+}
+
+
+
+
+
+/* ===== Section Titles ===== */
+.section-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1558b0;
+    border-bottom: 2px solid #a0c4ff;
+    padding-bottom: 6px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+/* ===== Flight info & Customer info ===== */
+.flight-info p,
+.customer-info p {
+    margin: 10px 0;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.flight-info .label,
+.customer-info .label {
+    font-weight: bold;
+    color: #0b3c78;
+}
+
+/* ===== Phone numbers ===== */
+.phone-number {
+    display: inline-block;
+    margin-right: 10px; /* space between phones */
+    padding: 5px 12px;
+    background-color: #1a73e8; /* soft blue background */
+    color: white;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Flip the + sign to left */
+.phone-number i {
+    margin-left: 0;
+    margin-right: 6px;
+    transform: rotateY(180deg);
+}
+
+/* ===== Seat tags ===== */
+.seat-tag {
+    display: inline-block;
+    background-color: #1a73e8;
+    color: white;
+    padding: 6px 14px;
+    margin: 5px 3px 5px 0;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.submit-btn {
+    display: inline-block;        /* חשוב ל־<a> */
+    text-align: center;
+    padding: 12px 24px;
+    background: #1a73e8;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;        /* מוריד קו תחתון של קישור */
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.submit-btn:hover {
+    background: #1558b0;
+}
+
+
+/* ===== Responsive ===== */
+@media (max-width: 650px) {
+    .card {
+        padding: 25px;
+    }
+    .flight-graphic .city {
+        font-size: 16px;
+    }
+    .seat-tag {
+        font-size: 13px;
+        padding: 5px 10px;
+    }
+    .phone-number {
+        font-size: 13px;
+        padding: 4px 10px;
+    }
+}

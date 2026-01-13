@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}תוצאות חיפוש טיסות{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='flights_reasults.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<body class="search-results">
+
+{% if flights %}
+    <h1>תחזיקו חזק... אנחנו ממריאים!</h1>
+    <p>מצאנו {{ flights|length }} טיסות שזמינות ל-{{ passengers }} נוסעים</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>מספר טיסה</th>
+                <th>מקור</th>
+                <th>יעד</th>
+                <th>המראה</th>
+                <th>נחיתה</th>
+                <th>מחיר רגיל</th>
+                <th>מחיר עסקים</th>
+                <th>פעולה</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for flight in flights %}
+            <tr>
+                <td>{{ flight.flight_id }}</td>
+                <td>{{ flight.origin }}</td>
+                <td>{{ flight.destination }}</td>
+                <td>{{ flight.departure_datetime.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ flight.arrival_datetime.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ flight.regular_price }} ₪</td>
+                <td>{{ flight.business_price }} ₪</td>
+                <td>
+                    <form action="{{ url_for('book_flight') }}" method="POST">
+                        <input type="hidden" name="flight_id" value="{{ flight.flight_id }}">
+                        <input type="hidden" name="passengers" value="{{ passengers }}">
+                        <input type="hidden" name="origin" value="{{ flight.origin }}">
+                        <input type="hidden" name="destination" value="{{ flight.destination }}">
+                        <input type="hidden" name="departure_datetime" value="{{ flight.departure_datetime }}">
+                        <input type="hidden" name="arrival_datetime" value="{{ flight.arrival_datetime }}">
+                        <input type="hidden" name="regular_price" value="{{ flight.regular_price }}">
+                        <input type="hidden" name="business_price" value="{{ flight.business_price }}">
+                        <button type="submit" class="btn">בחר טיסה</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p class="message">לא נמצאו טיסות זמינות שתואמות לחיפוש שלך</p>
+{% endif %}
+
+<a href="{{ url_for('homepage') }}" class="btn home-btn">חזרה לדף הבית</a>
+
+
+</body>
+
+{% endblock %}

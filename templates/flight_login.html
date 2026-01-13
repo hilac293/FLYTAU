@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>המשך הזמנה | פרטי נוסע</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='flight_login.css') }}">
-</head>
+{% extends "base.html" %}
+
+{% block title %}פרטי הלקוח - FLYTAU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='flight_login.css') }}">
+{% endblock %}
+
+{% block content %}
 <body>
 
 <div class="overlay">
@@ -22,12 +24,16 @@
             <div class="card login-card">
                 <h2>התחברות לחשבון</h2>
 
-            {% if error %}
-              <div class="error-message">{{ error }}</div>
-            {% endif %}
+            {% with messages = get_flashed_messages(category_filter=["error"]) %}
+              {% if messages %}
+                <div class="error-message">
+                  {{ messages[0] }}
+                </div>
+              {% endif %}
+            {% endwith %}
 
                 <form action="/customer-login" method="post">
-                    <input type="email" name="email" placeholder="אימייל" required>
+                    <input type="email" name="email" placeholder="אימייל" required value="{{ email }}">
                     <input type="password" name="password" placeholder="סיסמה" required>
                     <button type="submit">התחבר והמשך</button>
                 </form>
@@ -54,4 +60,4 @@
 </div>
 
 </body>
-</html>
+{% endblock %}

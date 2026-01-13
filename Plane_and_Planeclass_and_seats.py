@@ -2,6 +2,7 @@ from datetime import date
 from enum import Enum
 from typing import List
 from utils import get_connection
+from utils import get_connection
 
 # --- Enums ---
 class PlaneSize(Enum):
@@ -47,8 +48,40 @@ class PlaneClass:
                 self.seats.append(Seat(seat_number, row, column_letter, self))
         return self.seats
 
+    def get_plane_classes_map(plane_id):
+        """
+        Fetch all PlaneClass objects for a given plane from DB,
+        and return a mapping: class_type string -> PlaneClass object
+        """
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT class_type, rows_number, columns_number
+            FROM plane_class
+            WHERE plane_id = %s
+        """
+        cursor.execute(query, (plane_id,))
+        rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        # Create mapping: class_type string -> PlaneClass object
+        classes_map = {}
+        for row in rows:
+            plane_class_obj = PlaneClass(
+                class_type=row["class_type"],  # or SeatClass enum if needed
+                rows_number=row["rows_number"],
+                columns_number=row["columns_number"]
+            )
+            classes_map[row["class_type"]] = plane_class_obj
+
+        return classes_map
+
+
 class Seat:
-    def __init__(self, seat_number: int, row_number: int, column_letter: str, plane_class: PlaneClass, status: str = "available"):
+    def __init__(self,plane_id,  seat_number: int, row_number: int, column_letter: str, plane_class: PlaneClass):
         """
         seat_number: מספר המושב הייחודי בתוך המחלקה
         row_number: מספר השורה
@@ -61,19 +94,91 @@ class Seat:
         self.column_letter = column_letter
         self.plane_class = plane_class
         self.class_type = plane_class.class_type  # יורש את סוג הכיתה
-        self.status = status
+        self.plane_id = plane_id
 
-    def is_available(self) -> bool:
-        """Return True if the seat is available."""
-        return self.status == "available"
 
-    def occupy(self):
-        """Mark the seat as occupied."""
-        self.status = "occupied"
 
-    def free(self):
-        """Mark the seat as available."""
-        self.status = "available"
+    @staticmethod
+    def get_seats_for_plane(plane_id):
+        """
+        Returns all Seat objects for a given plane.
+        Each seat is connected to its PlaneClass object.
+        This method DOES NOT care about availability.
+        """
+
+        # Step 1: get all plane classes for this plane as a dictionary
+        # key = class_type, value = PlaneClass object
+        classes_map = PlaneClass.get_plane_classes_map(plane_id)
+
+        # Step 2: fetch all seats from DB
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+        query = """
+            SELECT plane_id, class_type, seat_number, rownumber, column_letter
+            FROM Seats
+            WHERE plane_id = %s
+            ORDER BY rownumber, column_letter
+        """
+        cursor.execute(query, (plane_id,))
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        # Step 3: create Seat objects and attach them to PlaneClass
+        seats = []
+        for row in rows:
+            plane_class_obj = classes_map.get(row["class_type"])
+
+            # Safety fallback (should normally not happen)
+            if not plane_class_obj:
+                plane_class_obj = PlaneClass(row["class_type"], 0, 0)
+                classes_map[row["class_type"]] = plane_class_obj
+
+            seat = Seat(
+                plane_id=row["plane_id"],
+                plane_class=plane_class_obj,
+                seat_number=row["seat_number"],
+                row_number=row["rownumber"],
+                column_letter=row["column_letter"]
+            )
+            seats.append(seat)
+
+        return seats
+
+    @staticmethod
+    def get_taken_seats_for_flight(flight_id):
+        """
+        Returns a set of seat_numbers that are currently taken for a given flight.
+
+        A seat is considered taken if:
+        - It appears in Booking_Seats
+        - And its order is still ACTIVE
+
+        If an order is cancelled (by customer or manager),
+        the seat becomes available automatically.
+        """
+
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT bs.seat_number
+            FROM Booking_Seats bs
+            JOIN Orders o ON o.order_id = bs.order_id
+            WHERE o.flight_id = %s
+              AND o.order_status IN ('ACTIVE', 'COMPLETED')
+        """
+
+        cursor.execute(query, (flight_id,))
+        rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        # Convert list of dicts into a set for fast lookup
+        taken_seats = {row["seat_number"] for row in rows}
+        return taken_seats
+
 
 
 

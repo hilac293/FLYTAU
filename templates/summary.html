@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>סיכום הזמנה</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='summary.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- Progress bar -->
+<div class="progress-steps">
+    <div class="line-active" style="width: {{ current_step * 25 }}%;"></div>
+    {% for step in steps %}
+        <div class="step">{{ step }}</div>
+    {% endfor %}
+</div>
+
+<!-- Card -->
+<div class="card">
+
+    <h2>סיכום הזמנה</h2>
+
+    <!-- Flight route graphic -->
+    <div class="flight-graphic">
+        <div class="city">
+            {{ booking.destination }}
+            <div class="flight-time">{{ booking.arrival_datetime.split(" ")[1] }}</div>
+        </div>
+
+        <div class="plane-path-container">
+            <div class="plane-icon">
+                <i class="fa-solid fa-plane"></i>
+            </div>
+            <svg class="flight-curve" viewBox="0 0 600 80" preserveAspectRatio="none">
+                <path d="M10,70 C150,10 450,10 590,70" stroke="#1a73e8" stroke-width="3" fill="transparent" />
+            </svg>
+        </div>
+
+        <div class="city">
+            {{ booking.origin }}
+            <div class="flight-time">{{ booking.departure_datetime.split(" ")[1] }}</div>
+        </div>
+    </div>
+
+    <!-- Flight Info -->
+    <div class="section-title">פרטי הטיסה</div>
+    <div class="flight-info">
+        <p><span class="label">מספר טיסה:</span> {{ booking.flight_id }}</p>
+        <p><span class="label">תאריך יציאה:</span> {{ booking.departure_datetime.split(' ')[0] }}</p>
+        <p><span class="label">תאריך נחיתה:</span> {{ booking.arrival_datetime.split(' ')[0] }}</p>
+        <p><span class="label">שעת יציאה:</span> {{ booking.departure_datetime.split(' ')[1] }}</p>
+        <p><span class="label">שעת נחיתה:</span> {{ booking.arrival_datetime.split(' ')[1] }}</p>
+        <p><span class="label">משך טיסה:</span> {{ booking.duration }} שעות</p>
+    </div>
+
+    <!-- Customer Info -->
+    <div class="section-title">פרטי הלקוח</div>
+    <div class="customer-info">
+        <p><span class="label">שם:</span> {{ booking.customer.first_name }} {{ booking.customer.last_name }}</p>
+        <p><span class="label">אימייל:</span> {{ booking.customer.email }}</p>
+        <p><span class="label">טלפון:</span>
+            {% for phone in booking.customer.phones %}
+                <span class="phone-number">{{ phone }}</span>
+            {% endfor %}
+        </p>
+        <p><span class="label">מספר נוסעים:</span> {{ booking.passengers_count }}</p>
+        <p><span class="label">מושבים:</span>
+            {% for seat in booking.seats %}
+                <span class="seat-tag">{{ seat.seat_number }}</span>
+            {% endfor %}
+        </p>
+<p>
+    <span class="label">סך לתשלום:</span>
+    {{ booking.total_amount | round(2) }} ₪
+</p>
+    </div>
+
+    <a href="{{ url_for('payment') }}" class="submit-btn">
+    להמשיך לתשלום
+</a>
+
+
+</div>
+
+</body>
+</html>

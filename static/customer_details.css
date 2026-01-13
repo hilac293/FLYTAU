@@ -99,6 +99,7 @@ label {
     border-radius: 6px;
     border: 1px solid #cfddee;
     box-sizing: border-box;
+    text-align: left;
 }
 
 .field i {

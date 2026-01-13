@@ -1,4 +1,5 @@
 import mysql.connector
+from datetime import datetime
 from flask import session
 
 
@@ -15,15 +16,33 @@ def get_connection(data_base):
 
 
 
-def ensure_booking():
+
+# Check expiry date in payment
+def is_expiry_valid(expiry):
     """
-    Ensure session['booking'] exists with default values.
-    Returns the booking dictionary.
+    expiry format: MM/YY
+    Returns True if expiry is in the future.
     """
-    if "booking" not in session:
-        session["booking"] = {
-            "num_passengers": 1,  # default if not set
-            "logged_in": False
-        }
-    return session["booking"]
+    try:
+        month, year = expiry.split("/")
+        month = int(month)
+        year = int(year)
+
+        if month < 1 or month > 12:
+            return False
+
+        now = datetime.now()
+        current_month = now.month
+        current_year = now.year % 100  # last two digits
+
+        # expired?
+        if year < current_year:
+            return False
+        if year == current_year and month < current_month:
+            return False
+
+        return True
+    except:
+        return False
+
 

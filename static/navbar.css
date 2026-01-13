@@ -1,0 +1,59 @@
+/* ===== Navbar ===== */
+.navbar {
+    position: fixed;
+    top: 0;
+    right: 0; /* RTL */
+    left: 0;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 100;
+    font-family: Arial, sans-serif;
+}
+
+/* Logo and brand */
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo {
+    height: 40px;
+    width: auto;
+}
+
+.brand-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1a73e8;
+}
+
+/* Links */
+.navbar-right a,
+.navbar-right .welcome {
+    margin-left: 15px; /* RTL spacing */
+    text-decoration: none;
+    color: #0b3c78;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.navbar-right a:hover {
+    color: #1a73e8;
+}
+
+/* Welcome text style */
+.navbar-right .welcome {
+    font-weight: bold;
+}
+
+/* Adjust main content so navbar does not overlap */
+.main-content {
+    margin-top: 70px; /* navbar height + spacing */
+    padding: 20px;
+}

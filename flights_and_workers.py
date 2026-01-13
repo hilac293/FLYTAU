@@ -40,7 +40,7 @@ class Flight:
 
             cursor.execute("""
                 SELECT minutes
-                FROM Flight_time
+                FROM route
                 WHERE origin = %s AND destination = %s
             """, (self.origin, self.destination))
 
@@ -52,6 +52,20 @@ class Flight:
                 raise ValueError("Flight duration not found")
 
             return row["minutes"] / 60
+
+        def get_arrival_datetime(self):
+            """
+            Calculate the arrival datetime based on departure_datetime and flight duration.
+            Assumes no timezone differences.
+            """
+            try:
+                duration_hours = self.get_duration_hours()  # from your existing method
+            except ValueError:
+                # fallback if duration not found
+                duration_hours = 0
+
+            arrival_datetime = self.departure_datetime + timedelta(hours=duration_hours)
+            return arrival_datetime
 
         def send_to_db(self):
             """
@@ -125,6 +139,24 @@ class Flight:
             conn.commit()
             cursor.close()
             conn.close()
+
+        @staticmethod
+        def get_by_id(flight_id):
+            conn = get_connection("FLYTAU")
+            cursor = conn.cursor(dictionary=True)
+
+            query = """
+                SELECT flight_id, departure_datetime, origin, destination,
+                       flight_status, regular_price, business_price, plane_id
+                FROM flights
+                WHERE flight_id = %s
+            """
+            cursor.execute(query, (flight_id,))
+            row = cursor.fetchone()
+            cursor.close()
+            conn.close()
+
+            return row
 
 
 class Employee:

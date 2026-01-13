@@ -1,3 +1,6 @@
+import mysql
+from flask import session
+
 from utils import get_connection
 from datetime import datetime, timedelta
 
@@ -6,33 +9,102 @@ class Order:
                  order_status="active",
                  email_guest=None, email_registered=None,
                  order_date=None):
-  
+
         self.order_id = None  # Will be set after saving to DB
         self.total_amount = total_amount
         self.flight_id = flight_id
         self.order_status = order_status
         self.email_guest = email_guest
         self.email_registered = email_registered
-        self.order_date = order_date or datetime.now().strftime("%Y-%m-%d %H:%M")
-        self.seats = []  # List of seat_ids (for code side convenience)
+        self.order_date = order_date or datetime.now().strftime("%Y-%m-%d")
 
-    # --- Save order to DB ---
+        # Each seat will be a dict:
+        # { plane_id, class_type, seat_number }
+        self.seats = []
+
+    # -----------------------------
+    # Save the order to Orders table
+    # -----------------------------
     def save_to_db(self):
-  
+        """
+        Save the order to the database.
+        Inserts NULL for guest_email if it's a registered user.
+        """
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
 
-        cursor.execute("""
-            INSERT INTO Orders
-            (order_status, total_amount, order_date, email_guest, email_registered, flight_id)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (self.order_status, self.total_amount, self.order_date,
-              self.email_guest, self.email_registered, self.flight_id))
+        try:
+            print("CURRENT SESSION:", dict(session))
+
+            # --- Choose correct emails ---
+            if session["logged_in"]:
+                registered_email = session["user"]["email"]
+                guest_email = None
+            else:
+                guest_email = session["booking"]["customer"]["email"]
+                print(guest_email)
+                registered_email = None
+            
+
+            # --- Insert order ---
+            cursor.execute("""
+                INSERT INTO Orders
+                (order_status, total_amount, guest_email, registered_email, flight_id, order_date)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (
+                self.order_status,
+                self.total_amount,
+                guest_email,  # None if registered user
+                registered_email,  # None if guest
+                self.flight_id,
+                self.order_date
+            ))
+
+            conn.commit()
+            self.order_id = cursor.lastrowid
+
+        except mysql.connector.Error as e:
+            print("Database error:", e)
+            conn.rollback()
+            raise e
+        finally:
+            cursor.close()
+            conn.close()
+
+    # -----------------------------------
+    # Save all seats to booking_seats table
+    # -----------------------------------
+    def save_seats_to_db(self):
+        """
+        Saves each selected seat to booking_seats table.
+        booking_seats:
+        (order_id, plane_id, class_type, seat_number)
+        """
+
+        if self.order_id is None:
+            raise Exception("Order must be saved before saving seats")
+
+
+
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor()
+
+        for seat in self.seats:
+            cursor.execute("""
+                INSERT INTO booking_seats
+                (order_id, plane_id, class_type, seat_number)
+                VALUES (%s, %s, %s, %s)
+            """, (
+                self.order_id,
+                seat["plane_id"],
+                seat["class_type"],
+                seat["seat_number"]
+            ))
 
         conn.commit()
-        self.order_id = cursor.lastrowid
         cursor.close()
         conn.close()
+
 
     # --- Update order status ---
     def update_status(self, new_status):

@@ -67,6 +67,77 @@ class Guest(Customer):
         cursor.close()
         conn.close()
 
+    @staticmethod
+    def get_by_email(email):
+        """
+        Returns a Guest object if a guest with the given email exists in the database.
+        Also fetches the guest's phone numbers.
+        Returns None if no guest is found.
+        """
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+
+        try:
+            # --- Check if guest exists ---
+            cursor.execute("SELECT * FROM Guests WHERE email = %s", (email,))
+            guest_row = cursor.fetchone()
+
+            if not guest_row:
+                # No guest found
+                return None
+
+            # --- Fetch guest phones ---
+            cursor.execute("SELECT phone_number FROM Guest_Phones WHERE email = %s", (email,))
+            phone_rows = cursor.fetchall()
+            phones = [row["phone_number"] for row in phone_rows] if phone_rows else []
+
+            # --- Create Guest object with data ---
+            return Guest(
+                email=guest_row["email"],
+                first_name=guest_row.get("first_name", ""),
+                last_name=guest_row.get("last_name", ""),
+                phones=phones
+            )
+        finally:
+            cursor.close()
+            conn.close()
+
+
+
+    @staticmethod
+    def delete_by_email(email):
+        """
+        Deletes a guest and their phone numbers from the database based on email.
+        Use this when converting an existing guest into a registered user
+        to avoid duplicate email conflicts.
+        """
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor()
+
+        try:
+            # --- Delete phones first to maintain foreign key constraints ---
+            cursor.execute(
+                "DELETE FROM Guest_Phones WHERE email = %s",
+                (email,)
+            )
+
+            # --- Delete guest record ---
+            cursor.execute(
+                "DELETE FROM Guests WHERE email = %s",
+                (email,)
+            )
+
+            # --- Commit changes ---
+            conn.commit()
+
+        except Exception as e:
+            # Rollback in case of error
+            conn.rollback()
+            raise e
+        finally:
+            cursor.close()
+            conn.close()
+
 
     def update_email_in_db(self, old_email):
         """
@@ -187,6 +258,18 @@ class Registered(Customer):
             password=user_row["password"],
             phones=phones
         )
+
+    @classmethod
+    def get_by_passport(cls, passport_number):
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Registered WHERE passport_number=%s", (passport_number,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if row:
+            return cls(**row)  # assuming constructor matches column names
+        return None
 
     def update_email_in_db(self, old_email):
         """

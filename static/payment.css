@@ -1,0 +1,139 @@
+/* ===== Body & Global ===== */
+body {
+    margin: 0;
+    font-family: "Arial", sans-serif;
+    background-image: url("/static/imgs/background.png");
+    background-size: cover;
+    background-position: center;
+    color: #0b3c78;
+    direction: rtl;
+}
+
+/* ===== Progress Bar ===== */
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    width: 90%;
+    margin: 30px auto 50px auto;
+    height: 40px;
+}
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 4px;
+    background-color: rgba(11,60,120,0.2);
+    transform: translateY(-50%);
+    border-radius: 2px;
+}
+.progress-steps .line-active {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    height: 4px;
+    background-color: #1a73e8;
+    transform: translateY(-50%);
+    border-radius: 2px;
+}
+.step {
+    z-index: 3;
+    font-weight: bold;
+    color: #0b3c78;
+    text-align: center;
+    flex: 1;
+    position: relative;
+    top: -12px;
+}
+
+/* ===== Card ===== */
+.card {
+    max-width: 600px;
+    margin: 0 auto 50px auto;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 40px;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+
+/* Headings */
+h2 {
+    text-align: center;
+    color: #0b3c78;
+    font-size: 26px;
+    margin-top: 0;
+}
+
+/* Section titles */
+.section-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1558b0;
+    border-bottom: 2px solid #a0c4ff;
+    padding-bottom: 6px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+/* Flight info / summary */
+.flight-info p {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+.flight-info .label {
+    font-weight: bold;
+    color: #0b3c78;
+}
+
+/* Payment form fields */
+.payment-form .field {
+    margin-bottom: 18px;
+}
+.payment-form label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #0b3c78;
+}
+.payment-form input {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    border-radius: 6px;
+    border: 1px solid #cfddee;
+    box-sizing: border-box;
+}
+
+/* Submit button */
+button.submit-btn {
+    width: 100%;
+    padding: 16px;
+    margin-top: 25px;
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 17px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+button.submit-btn:hover {
+    background-color: #1558b0;
+}
+
+/* Error message */
+.error {
+    color: red;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Responsive */
+@media (max-width: 650px) {
+    .card {
+        padding: 25px;
+    }
+}

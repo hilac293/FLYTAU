@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html lang="he">
-<head>
-    <meta charset="UTF-8">
-    <title>פרטי לקוח</title>
+{% extends "base.html" %}
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='customer_details.css') }}">
+{% block title %}פרטי הלקוח{% endblock %}
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='customer_details.css') }}">
+{% endblock %}
+
+{% block content %}
 
 <body>
 
@@ -34,6 +30,7 @@
         <div class="field">
             <i class="fa-solid fa-user"></i>
             <input type="text" name="first_name" placeholder="שם פרטי (באנגלית)" required
+                   pattern="[A-Za-z\-]+" title="אנא הכנס שם באנגלית בלבד"
                    value="{{ user.first_name if user else '' }}">
         </div>
 
@@ -41,8 +38,10 @@
         <div class="field">
             <i class="fa-solid fa-user"></i>
             <input type="text" name="last_name" placeholder="שם משפחה (באנגלית)" required
+                   pattern="[A-Za-z\-]+" title="אנא הכנס שם באנגלית בלבד"
                    value="{{ user.last_name if user else '' }}">
         </div>
+
 
         <!-- Email -->
         <div class="field">
@@ -78,4 +77,4 @@
 
 
 </body>
-</html>
+{% endblock %}

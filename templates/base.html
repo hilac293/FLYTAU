@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}FLYTAU{% endblock %}</title>
+
+    <!-- CSS קבוע לכל האתר (למשל Navbar) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Block for page-specific CSS -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- ===== Navbar ===== -->
+    <header class="navbar">
+        <div class="navbar-left">
+            <img src="{{ url_for('static', filename='imgs/flytau-logo-removebg.png') }}" alt="FlyTau Logo" class="logo">
+            <span class="brand-name">FLY TAU</span>
+        </div>
+        <nav class="navbar-right">
+            {% if session.get('logged_in') %}
+                <!-- User is logged in -->
+                <span class="welcome">שלום {{ session['user']['first_name'] }}!</span>
+                <a href="{{ url_for('order_history') }}">היסטוריית הזמנות</a>
+                <a href="{{ url_for('contact_us') }}">יצירת קשר</a>
+                <a href="{{ url_for('customer_logout') }}">יציאה</a>
+            {% else %}
+                <!-- User is not logged in -->
+                <a href="{{ url_for('register') }}">הרשמה</a>
+                <a href="{{ url_for('login') }}">התחברות</a>
+                <a href="{{ url_for('contact_us') }}">יצירת קשר</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <!-- Main content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

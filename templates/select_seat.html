@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}בחירת מושבים{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='seats.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='customer_details.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<body>
+
+<!-- Progress steps -->
+<div class="progress-steps">
+    <div class="line-active" style="width: {{ current_step * 25 }}%;"></div>
+    <div class="step">פרטי לקוח</div>
+    <div class="step">בחירת מושבים</div>
+    <div class="step">סיכום הזמנה</div>
+    <div class="step">תשלום</div>
+</div>
+
+<!-- Card -->
+<div class="card">
+
+    <h2>בחירת מושב</h2>
+
+    {% if error %}
+        <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+
+        <!-- Legend -->
+        <div class="seat-legend">
+            <div class="legend-item">
+                <span class="seat business"></span>
+                <span>מחלקת ביזנס</span>
+            </div>
+            <div class="legend-item">
+                <span class="seat economy"></span>
+                <span>מחלקת תיירים</span>
+            </div>
+        </div>
+
+        <div class="seat-separator"></div>
+
+        <!-- Seats layout -->
+        {% for row, seats_in_row in rows.items() %}
+        <div class="seat-row">
+            <div class="row-number">{{ row }}</div>
+
+            <div class="row-seats">
+                {% set mid = (seats_in_row|length // 2) %}
+
+                {% for seat in seats_in_row %}
+                    {% set seat_info = seat_map[seat.seat_number] %}
+
+                    <label class="seat
+                        {% if seat_info.is_taken %}taken{% endif %}
+                        {% if seat.seat_number in selected_seat_numbers %}selected{% endif %}
+                        {% if seat_info.class_type == 'Business' %}business{% else %}economy{% endif %}">
+
+                        <input type="checkbox"
+                               name="seat_number"
+                               value="{{ seat.seat_number }}"
+                               {% if seat_info.is_taken %}disabled{% endif %}
+                               {% if seat.seat_number in selected_seat_numbers %}checked{% endif %}>
+
+                        <span>{{ seat_info.column_letter }}</span>
+                    </label>
+
+                    {% if loop.index == mid %}
+                        <div class="aisle"></div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="submit-btn">
+            המשך לסיכום הזמנה
+        </button>
+
+    </form>
+</div>
+
+<script>
+const maxSeats = {{ passengers_count }};
+const checkboxes = document.querySelectorAll('input[name="seat_number"]');
+
+checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+        const checked = document.querySelectorAll('input[name="seat_number"]:checked');
+        if (checked.length > maxSeats) {
+            cb.checked = false; // undo check if over limit
+        }
+    });
+});
+</script>
+
+</body>
+{% endblock %}

@@ -1,0 +1,174 @@
+/* =================== */
+/* Body & Background  */
+/* =================== */
+body {
+    margin: 0;
+    font-family: "Arial", sans-serif;
+    background-image: url("/static/imgs/background.png");
+    background-size: cover;
+    background-position: center;
+    color: #0b3c78;
+    direction: rtl;
+}
+
+.homepage-intro h1 {
+    font-size: 2rem;
+    margin: 0 0 8px 0;
+    color: #0d47a1;
+}
+
+/* =================== */
+/* Header             */
+/* =================== */
+header.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: 100;
+}
+
+header.header .link {
+    text-decoration: none;
+    color: var(--blue, #1a73e8);
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+header.header .link:hover {
+    color: #1558b0;
+}
+
+/* =================== */
+/* Main container     */
+/* =================== */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 40px; /* space for fixed header */
+    padding: 20px;
+}
+
+/* =================== */
+/* Central text        */
+/* =================== */
+.homepage-intro {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.homepage-intro h1 {
+    font-size: 2rem;
+    margin: 0 0 8px 0;
+}
+
+.homepage-intro p {
+    font-size: 1.1rem;
+    color: #1558b0;
+    margin: 0;
+}
+
+/* =================== */
+/* Airplane image      */
+/* =================== */
+.airplane-image img {
+    max-width: 400px;
+    width: 100%;
+    height: auto;
+    margin-bottom: 30px;
+}
+
+/* =================== */
+/* Card / Search form  */
+/* =================== */
+.card {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 25px 20px;
+    border-radius: 12px;
+    max-width: 900px;
+    width: 100%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* =================== */
+/* Horizontal Form Grid */
+/* =================== */
+.form-horizontal {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.form-horizontal .field {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 180px; /* grow and shrink */
+}
+
+.form-horizontal label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.form-horizontal input {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Search button styling */
+.form-horizontal .search-button {
+    flex: 0 0 auto;
+    margin-top: 24px; /* align with inputs */
+}
+
+.form-horizontal .search-button button {
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #1a73e8, #1558b0);
+    border: none;
+    color: white;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.form-horizontal .search-button button:hover {
+    background: linear-gradient(90deg, #1558b0, #0b3c78);
+}
+
+/* =================== */
+/* Responsive          */
+/* =================== */
+@media (max-width: 900px) {
+    .form-horizontal {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .form-horizontal .search-button {
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 650px) {
+    .homepage-intro h1 {
+        font-size: 1.5rem;
+    }
+    .homepage-intro p {
+        font-size: 1rem;
+    }
+    .airplane-image img {
+        max-width: 300px;
+    }
+}
