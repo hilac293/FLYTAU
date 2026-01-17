@@ -11,7 +11,7 @@ class Flight:
                 regular_price,
                 business_price,
                 plane_id,
-                status="active"
+                status="Scheduled"
         ):
             """
             Represents a flight entity.
@@ -157,6 +157,49 @@ class Flight:
             conn.close()
 
             return row
+
+        @staticmethod
+        def cancel_flight(flight_id):
+            conn = get_connection("FLYTAU")
+            cursor = conn.cursor()
+
+            # 1) הסרת צוות מקושר
+            cursor.execute("DELETE FROM PilotsFlights WHERE flight_id = %s", (flight_id,))
+            cursor.execute("DELETE FROM FlightAttendantsFlights WHERE flight_id = %s", (flight_id,))
+
+            # 2) שינוי סטטוס במקום מחיקה
+            cursor.execute("""
+                UPDATE Flights
+                SET flight_status = 'Cancelled'
+                WHERE flight_id = %s
+            """, (flight_id,))
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+        @staticmethod
+        def get_all():
+            conn = get_connection("FLYTAU")
+            cursor = conn.cursor(dictionary=True)
+
+            cursor.execute("""
+                SELECT flight_id, departure_datetime, origin, destination, flight_status
+                FROM Flights
+                ORDER BY departure_datetime ASC
+            """)
+
+            rows = cursor.fetchall()
+            cursor.close()
+            conn.close()
+
+            return rows
+
+        @staticmethod
+        def can_cancel(flight_datetime):
+            now = datetime.now()
+            diff = flight_datetime - now
+            return diff.total_seconds() >= 72 * 3600
 
 
 class Employee:

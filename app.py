@@ -32,6 +32,9 @@ STEPS = [
     "תשלום"
 ]
 
+@app.route("/")
+def root():
+    return redirect(url_for("homepage"))
 
 # ======================================================
 # Login
@@ -81,7 +84,6 @@ def dashboard():
 
     return render_template("dashboard.html")
 
-
 # ======================================================
 # Create Flight - Step 1 (Flight Details)
 # ======================================================
@@ -97,7 +99,6 @@ def create_flight():
     if request.method == "POST":
         data = request.form
 
-        # Basic price validation
         try:
             regular_price = float(data["regular_price"])
             business_price = float(data["business_price"])
@@ -120,27 +121,82 @@ def create_flight():
                 error="Invalid price values"
             )
 
-        # Parse departure datetime
         departure_datetime = datetime.strptime(
             f"{data['date']} {data['time']}",
             "%Y-%m-%d %H:%M"
         )
 
-        # Find available planes
-        planes = get_available_planes(
-            data["origin"],
-            data["destination"],
-            departure_datetime
+        # 🔹 Block choosing past dates
+        today = datetime.now().date()
+        if departure_datetime.date() < today:
+            return render_template(
+                "create_flight.html",
+                error="לא ניתן לבחור תאריך שעבר",
+                current_date=today.isoformat()
+            )
+
+        origin = data["origin"]
+        destination = data["destination"]
+
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("""
+            SELECT minutes
+            FROM route
+            WHERE origin = %s AND destination = %s
+        """, (origin, destination))
+        row = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if not row:
+            return render_template(
+                "create_flight.html",
+                error="לא ניתן ליצור טיסה זו כי אין זמן טיסה מוגדר בין היעדים.",
+                current_date=today.isoformat()
+            )
+
+        duration_hours = row["minutes"] / 60.0
+        is_long_flight = duration_hours > 6
+
+        planes = get_available_planes(origin, destination, departure_datetime)
+
+        if not planes:
+            return render_template(
+                "create_flight.html",
+                error="לא ניתן ליצור טיסה זו בגלל חוסר במטוסים מתאימים.",
+                current_date=today.isoformat()
+            )
+
+        required_attendants, required_pilots = get_required_crew_by_duration(duration_hours)
+
+        attendants = get_available_attendants(
+            departure_datetime,
+            origin=origin,
+            destination=destination,
+            is_long_flight=is_long_flight
         )
 
-        # Save flight data in session until final confirmation
+        pilots = get_available_pilots(
+            departure_datetime,
+            origin=origin,
+            destination=destination,
+            is_long_flight=is_long_flight
+        )
+
+        if len(attendants) < required_attendants or len(pilots) < required_pilots:
+            return render_template(
+                "create_flight.html",
+                error="לא ניתן ליצור טיסה זו בגלל חוסר במטוסים או אנשי צוות מתאימים.",
+                current_date=today.isoformat()
+            )
+
         session["flight_data"] = dict(data)
         session["departure_datetime"] = departure_datetime.isoformat()
 
-        # Extract plane table columns dynamically
-        plane_columns = []
-        if planes:
-            plane_columns = list(planes[0].keys())
+        plane_columns = list(planes[0].keys()) if planes else []
 
         return render_template(
             "select_plane.html",
@@ -148,7 +204,8 @@ def create_flight():
             plane_columns=plane_columns
         )
 
-    return render_template("create_flight.html")
+    return render_template("create_flight.html", current_date=datetime.now().date().isoformat())
+
 
 
 # ======================================================
@@ -195,7 +252,7 @@ def select_crew():
 
     cursor.execute("""
         SELECT minutes
-        FROM Flight_time
+        FROM route
         WHERE origin = %s AND destination = %s
     """, (data["origin"], data["destination"]))
 
@@ -209,8 +266,35 @@ def select_crew():
     required_attendants, required_pilots = get_required_crew_by_duration(duration_hours)
 
     # Fetch available crew members
-    attendants = get_available_attendants(departure_datetime)
-    pilots = get_available_pilots(departure_datetime)
+    # לחשב משך הטיסה כדי לדעת אם היא ארוכה
+    conn = get_connection("FLYTAU")
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT minutes
+        FROM route
+        WHERE origin = %s AND destination = %s
+    """, (data["origin"], data["destination"]))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    duration_hours = row["minutes"] / 60
+    is_long_flight = duration_hours > 6
+
+    # fetch data
+    attendants = get_available_attendants(
+        departure_datetime,
+        origin=data["origin"],
+        destination=data["destination"],
+        is_long_flight=(duration_hours > 6)
+    )
+
+    pilots = get_available_pilots(
+        departure_datetime,
+        origin=data["origin"],
+        destination=data["destination"],
+        is_long_flight=(duration_hours > 6)
+    )
 
     return render_template(
         "select_crew.html",
@@ -252,7 +336,7 @@ def finalize_flight():
 
     cursor.execute("""
         SELECT minutes
-        FROM Flight_time
+        FROM route
         WHERE origin = %s AND destination = %s
     """, (
         session["flight_data"]["origin"],
@@ -308,18 +392,100 @@ def finalize_flight():
 
     return render_template("success.html")
 
+@app.route("/cancel-flight", methods=["GET", "POST"])
+def cancel_flight_route():
+    if "manager" not in session:
+        return redirect("/")
+
+    flights = Flight.get_all()
+
+    if request.method == "POST":
+        flight_id = request.form.get("flight_id")
+        data = Flight.get_by_id(flight_id)
+
+        if not data:
+            return render_template("cancel_flight.html", flights=flights, error="טיסה לא נמצאה")
+
+        dep_time = data["departure_datetime"]
+
+        if not Flight.can_cancel(dep_time):
+            return render_template("cancel_flight.html", flights=flights, error="ניתן לבטל רק עד 72 שעות לפני")
+
+        Flight.cancel_flight(flight_id)
+
+        Order.refund_orders_by_flight(flight_id)
+
+        return render_template("cancel_flight.html", flights=Flight.get_all(), success="טיסה בוטלה בהצלחה")
+
+    return render_template("cancel_flight.html", flights=flights)
+
+@app.route("/flights-board", methods=["GET", "POST"])
+def flights_board():
+    if "manager" not in session:
+        return redirect("/")
+
+    # --- בסיס השאילתה ---
+    query = """
+        SELECT flight_id, departure_datetime, origin, destination,
+               flight_status, regular_price, business_price, plane_id
+        FROM Flights
+        WHERE 1 = 1
+    """
+    params = []
+
+    # --- סינונים ---
+    if request.method == "POST":
+        date = request.form.get("date")
+        origin = request.form.get("origin")
+        destination = request.form.get("destination")
+        status = request.form.get("status")
+
+        if date:
+            query += " AND DATE(departure_datetime) = %s"
+            params.append(date)
+
+        if origin:
+            query += " AND origin = %s"
+            params.append(origin)
+
+        if destination:
+            query += " AND destination = %s"
+            params.append(destination)
+
+        if status:
+            query += " AND flight_status = %s"
+            params.append(status)
+
+    # --- שליפת נתונים ---
+    conn = get_connection("FLYTAU")
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(query, params)
+    flights = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    statuses = [
+        ("Scheduled", "פעילה"),
+        ("Fully_Booked", "תפוסה מלאה"),
+        ("Accrued", "התקיימה"),
+        ("Cancelled", "בוטלה")
+    ]
+
+    return render_template(
+        "flight_board_managers.html",
+        flights=flights,
+        statuses=statuses
+    )
+
+
 
 # ======================================================
 # Logout
 # ======================================================
 @app.route("/logout")
 def logout():
-    """
-    Clear session and return to login page.
-    """
-
     session.clear()
-    return redirect("/")
+    return redirect(url_for("login"))  # מחזיר למסך התחברות מנהלים
 
 
 @app.route("/")
