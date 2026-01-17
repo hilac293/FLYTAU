@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}חיפוש הזמנה{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='guest_order_lookup.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<body>
+<div class="guest-lookup-container">
+
+    <div class="lookup-card">
+
+        <h1>חיפוש הזמנה</h1>
+        <p class="subtitle">כדי לצפות בהזמנה שלך, הזנו את האימייל וקוד ההזמנה</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-container">
+              {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    <span class="flash-icon">⚠️</span>
+                    <span class="flash-text">{{ message }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="lookup-form">
+            <input type="email" name="email" placeholder="אימייל" required value="{{ email if email else '' }}">
+            <input type="text" name="booking_code" placeholder="קוד הזמנה" required value="{{ booking_code if booking_code else '' }}">
+            <button type="submit">חפש הזמנה</button>
+        </form>
+
+        <p class="login-note">
+            אם כבר נרשמתם, אתם יכולים <a href="{{ url_for('customer_login') }}">להתחבר</a> ולצפות בכל ההזמנות שלכם.
+        </p>
+    </div>
+</div>
+</body>
+
+{% endblock %}

@@ -3,6 +3,7 @@ from flask import session
 
 from utils import get_connection
 from datetime import datetime, timedelta
+from flights_and_workers import Flight
 
 class Order:
     def __init__(self, total_amount, flight_id,
@@ -153,26 +154,232 @@ class Order:
         # Update the object's seat list
         self.seats = list(new_seat_ids)
 
-    # --- Fetch seats for this order ---
-    def get_seats(self):
+    def load_customer_details(self):
         """
-        Returns a list of seat_ids assigned to this order.
+        Load customer details into self.customer.
+        Works for both guest and registered users.
+        Result:
+        self.customer = {
+            first_name,
+            last_name,
+            email,
+            phones: []
+        }
         """
-        if not self.order_id:
-            return []
-
         conn = get_connection("FLYTAU")
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT seat_id FROM Order_Seats WHERE order_id = %s", (self.order_id,))
+
+        # Case 1: Guest order
+        if self.email_guest:
+            # Get guest basic info
+            cursor.execute("""
+                SELECT first_name, last_name, email
+                FROM Guests
+                WHERE email = %s
+            """, (self.email_guest,))
+            guest = cursor.fetchone()
+
+            # Get guest phones
+            cursor.execute("""
+                SELECT phone_number
+                FROM guest_phones
+                WHERE email = %s
+            """, (self.email_guest,))
+            phones = [row["phone_number"] for row in cursor.fetchall()]
+
+            self.customer = {
+                "first_name": guest["first_name"],
+                "last_name": guest["last_name"],
+                "email": guest["email"],
+                "phones": phones,
+                "type": "guest"
+            }
+
+        # Case 2: Registered order
+        elif self.email_registered:
+            # Get registered user basic info
+            cursor.execute("""
+                SELECT passport_number, first_name, last_name, email
+                FROM Registered
+                WHERE email = %s
+            """, (self.email_registered,))
+            user = cursor.fetchone()
+
+            # Get registered phones
+            cursor.execute("""
+                SELECT phone_number
+                FROM registered_phones
+                WHERE passport_number = %s
+            """, (user["passport_number"],))
+            phones = [row["phone_number"] for row in cursor.fetchall()]
+
+            self.customer = {
+                "first_name": user["first_name"],
+                "last_name": user["last_name"],
+                "email": user["email"],
+                "phones": phones,
+                "type": "registered"
+            }
+
+        else:
+            self.customer = None
+
+        cursor.close()
+        conn.close()
+
+    @classmethod
+    def get_by_id(cls, booking_id):
+        """
+        Fetch an order and attach flight details.
+        """
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+
+        # Get the order
+        cursor.execute("SELECT * FROM Orders WHERE order_id = %s", (booking_id,))
+        result = cursor.fetchone()
+        if not result:
+            cursor.close()
+            conn.close()
+            return None
+
+        order = cls(
+            total_amount=float(result["total_amount"]),
+            flight_id=result["flight_id"],
+            order_status=result["order_status"],
+            email_guest=result["guest_email"],
+            email_registered=result["registered_email"],
+            order_date=result["order_date"]
+        )
+        order.order_id = result["order_id"]
+
+        # Get seats
+        order.seats = cls.get_seats_for_order(order.order_id)
+
+        data = Flight.get_by_id(order.flight_id)
+        flight= Flight(
+            departure_date=data['departure_datetime'].strftime("%Y-%m-%d"),
+            departure_time=data['departure_datetime'].strftime("%H:%M"),
+            origin=data['origin'],
+            destination=data['destination'],
+            regular_price=data['regular_price'],
+            business_price=data['business_price'],
+            plane_id=data['plane_id'],
+            status=data['flight_status']
+        )
+        order.departure_datetime = flight.departure_datetime
+        order.arrival_datetime = flight.get_arrival_datetime()
+        order.duration = flight.get_duration_hours()
+        order.origin = flight.origin
+        order.destination = flight.destination
+
+        order.load_customer_details()
+
+        return order
+
+    # Inside Order class
+    @classmethod
+    def get_by_registered_email(cls, email):
+        """
+        Fetch all orders made by a registered user email.
+        Returns a list of Order instances.
+        """
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT *
+            FROM Orders
+            WHERE registered_email = %s
+            ORDER BY order_date DESC
+        """, (email,))
         rows = cursor.fetchall()
         cursor.close()
         conn.close()
 
-        self.seats = [row['seat_id'] for row in rows]
-        return self.seats
+        bookings = []
+        for row in rows:
+            order = cls(
+                total_amount=float(row["total_amount"]),
+                flight_id=row["flight_id"],
+                order_status=row["order_status"],
+                email_guest=row["guest_email"],
+                email_registered=row["registered_email"],
+                order_date=row["order_date"]
+            )
+            order.order_id = row["order_id"]
+            order.seats = cls.get_seats_for_order(order.order_id)
+            bookings.append(order)
+        return bookings
 
-    # --- Cancel order with 5% fee if >36h before flight ---
+    @classmethod
+    def get_by_email_and_code(cls, email, booking_code):
+        """
+        Look up an order in the DB using the guest email and booking code.
+        Returns an Order instance if found, else None.
+        """
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT * 
+            FROM orders
+            WHERE order_id = %s AND guest_email = %s
+        """
+        cursor.execute(query, (booking_code, email))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if not result:
+            return None
+
+        # Create an Order instance from DB row
+        order = cls(
+            total_amount=result["total_amount"],
+            flight_id=result["flight_id"],
+            order_status=result["order_status"],
+            email_guest=result["guest_email"],
+            email_registered=result["registered_email"],
+            order_date=result["order_date"]
+        )
+        order.order_id = result["order_id"]
+
+        # Fetch seats for this order
+        order.seats = cls.get_seats_for_order(order.order_id)
+
+        return order
+
+    # ====================================================
+    # Helper: fetch seats for a given order
+    # ====================================================
+    @staticmethod
+    def get_seats_for_order(order_id):
+        """
+        Returns a list of seat dicts for the given order_id.
+        Each seat dict: { plane_id, class_type, seat_number }
+        """
+        conn = get_connection("FLYTAU")
+
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT plane_id, class_type, seat_number
+            FROM booking_seats
+            WHERE order_id = %s
+        """
+        cursor.execute(query, (order_id,))
+        seats = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return seats
+
+    # In Order class
     def cancel_order(self):
+        """
+        Cancel the order if flight is at least 36 hours in the future.
+        Deduct 5% cancellation fee from total_amount.
+        Returns refund amount.
+        """
 
         if not self.order_id:
             raise ValueError("Order must be saved in DB before cancellation.")
@@ -180,7 +387,7 @@ class Order:
         conn = get_connection("FLYTAU")
         cursor = conn.cursor(dictionary=True)
 
-        # --- Get flight departure datetime ---
+        # Get flight departure datetime
         cursor.execute("SELECT departure_datetime FROM Flights WHERE flight_id = %s", (self.flight_id,))
         flight = cursor.fetchone()
         if not flight:
@@ -188,39 +395,38 @@ class Order:
             conn.close()
             raise ValueError("Flight not found in DB.")
 
-        flight_datetime = flight['departure_datetime']
+        departure_dt = flight["departure_datetime"]
         now = datetime.now()
 
-        # --- Check 36-hour rule ---
-        if flight_datetime - now < timedelta(hours=36):
+        # Check 36-hour rule
+        if departure_dt - now < timedelta(hours=36):
             cursor.close()
             conn.close()
             raise ValueError("Cannot cancel order less than 36 hours before the flight.")
 
-        # --- Calculate refund and cancellation fee ---
+        # Calculate cancellation fee (5%)
         cancellation_fee = self.total_amount * 0.05
         refund_amount = self.total_amount - cancellation_fee
-        self.total_amount = 0  # clear payment
 
-        # --- Update order status in DB ---
+        # Update order in DB
         self.order_status = "cancelled_by_customer"
+        self.total_amount = refund_amount  # update total to reflect deduction
         cursor.execute("""
             UPDATE Orders
-            SET order_status = %s, total_amount = %s
-            WHERE order_id = %s
+            SET order_status=%s, total_amount=%s
+            WHERE order_id=%s
         """, (self.order_status, self.total_amount, self.order_id))
 
-        # --- Release seats ---
-        cursor.execute("DELETE FROM Order_Seats WHERE order_id = %s", (self.order_id,))
+        # Remove seats from booking_seats
+        cursor.execute("DELETE FROM Booking_Seats WHERE order_id=%s", (self.order_id,))
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        # Clear seats in object
-        self.seats = []
 
-        return refund_amount
+        return refund_amount, cancellation_fee
+
 
     @staticmethod
     def refund_orders_by_flight(flight_id):

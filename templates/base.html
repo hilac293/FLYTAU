@@ -24,13 +24,16 @@
             {% if session.get('logged_in') %}
                 <!-- User is logged in -->
                 <span class="welcome">שלום {{ session['user']['first_name'] }}!</span>
-                <a href="{{ url_for('order_history') }}">היסטוריית הזמנות</a>
+                <a href="{{ url_for('homepage') }}">דף הבית</a>
+                <a href="{{ url_for('my_bookings') }}">היסטוריית הזמנות</a>
                 <a href="{{ url_for('contact_us') }}">יצירת קשר</a>
                 <a href="{{ url_for('customer_logout') }}">יציאה</a>
             {% else %}
                 <!-- User is not logged in -->
+                <a href="{{ url_for('homepage') }}">דף הבית</a>
                 <a href="{{ url_for('register') }}">הרשמה</a>
-                <a href="{{ url_for('login') }}">התחברות</a>
+                <a href="{{ url_for('guest_booking_lookup') }}">חיפוש הזמנה</a>
+                <a href="{{ url_for('customer_login') }}">התחברות</a>
                 <a href="{{ url_for('login') }}">מנהל</a>
                 <a href="{{ url_for('contact_us') }}">יצירת קשר</a>
             {% endif %}

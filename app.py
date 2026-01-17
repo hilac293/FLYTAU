@@ -26,7 +26,7 @@ app.secret_key = "secret123"
 
 # Steps for the progress bar
 STEPS = [
-    "פרטי נוסעים",
+    "פרטי לקוח",
     "בחירת מושבים",
     "סיכום פרטי הזמנה",
     "תשלום"
@@ -488,7 +488,7 @@ def logout():
     return redirect(url_for("login"))  # מחזיר למסך התחברות מנהלים
 
 
-@app.route("/homepage")
+@app.route("/")
 def homepage():
     # --- Get min and max dates for the date input ---
     now = datetime.now()
@@ -548,7 +548,7 @@ def search_flights():
     departure_date = request.form.get("departure")
     passengers = int(request.form.get("passengers", 1))
     if origin == destination:
-        error_message = "אופס, נראה שהמקור והיעד שבחרת זהים"
+        error_message = "אופס, נראה שהמקור והיעד שבחרתם זהים"
         return render_template(
                 "homepage.html",
         min_date=(datetime.now().date()).strftime('%Y-%m-%d'),
@@ -590,7 +590,7 @@ def search_flights():
             SELECT COUNT(bs.seat_number) AS occupied_seats
             FROM Booking_Seats bs
             JOIN orders o ON o.order_id = bs.order_id
-            WHERE o.flight_id = %s AND o.order_status != 'cancelled_by_customer'
+            WHERE o.flight_id = %s AND o.order_status = 'ACTIVE'
         """, (flight['flight_id'],))
         occupied_info = cursor.fetchone()
         occupied_seats = occupied_info['occupied_seats'] or 0
@@ -598,11 +598,8 @@ def search_flights():
         available_seats = total_seats - occupied_seats
 
         if available_seats >= passengers:
-            # --- Compute arrival datetime ---
-            # Option 1: using a method from Flight class (recommended)
-            # flight['arrival_datetime'] = Flight.get_arrival_datetime(flight)
 
-            # Option 2: using 'minutes' from route table
+            #  using 'minutes' from route table
             cursor.execute("""
                 SELECT minutes
                 FROM Route
@@ -675,24 +672,49 @@ def book_flight():
         # User not logged in → redirect to flight login page
         return redirect(url_for("flight_login"))
 
+    user = session.get("user")
+    session["booking"]["customer"] = {
+        "first_name": user['first_name'],
+        "last_name": user['last_name'],
+        "email": user['email'],
+        "phones": user['phones']
+    }
+
     # User is logged in → redirect to booking page (or payment page)
-    return redirect(url_for("booking_page"))
+    return redirect(url_for("select_seat"))
 
 
 #flight login
 
 @app.route("/flight-login", methods=["GET"])
 def flight_login():
-    return render_template("flight_login.html")
+    # Disconnect previous login only for flight flow
+    if session.get("logged_in"):
+        session.pop("logged_in", None)
+        session.pop("user", None)
+        session["booking"]["logged_in"] = False
+
+    email = session.pop("login_email", "")
+    return render_template("flight_login.html", email=email)
+
 
 #coniniue as a guest
 @app.route("/guest", methods=["POST"])
 def continue_as_guest():
+    # Explicitly mark user as not logged in
+    session["logged_in"] = False
+    session.pop("user", None)
+
+    # Update booking info
+    session["booking"] = session.get("booking", {})
     session["booking"]["logged_in"] = False
+    session["booking"]["customer"] = {}  # clear previous user info
+
     return redirect(url_for("customer_details"))
 
-@app.route("/customer-login", methods=["GET", "POST"])
-def customer_login():
+
+@app.route("/flight-customer-login", methods=["GET", "POST"])
+def flight_customer_login():
 
     if request.method == "POST":
         email = request.form.get("email")
@@ -718,10 +740,70 @@ def customer_login():
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "passport_number": user.passport_number
+                "passport_number": user.passport_number,
+                "phones": user.phones
             }
 
             session["booking"] = session.get("booking", {})
+            session["booking"]["customer"] = {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "phones": user.phones
+            }
+            session["booking"]["logged_in"] = True
+
+            return redirect(url_for("select_seat"))
+
+
+    # GET
+    email = session.pop("login_email", "")
+    return render_template("flight_login.html", email=email)
+
+
+@app.route("/customer-login", methods=["GET", "POST"])
+def customer_login():
+    """
+    Login route for users coming from homepage.
+    Always shows the nice login form and redirects back to homepage after login.
+    """
+
+    # Disconnect temporary login for this flow
+    session.pop("logged_in", None)
+    session.pop("user", None)
+    # Default email value (in case of previous failed login)
+    email = session.get("login_email", "")
+
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        user = Registered.find_by_email(email)
+
+        if not user:
+            flash("משתמש עם המייל הזה לא נמצא", "error")
+            session["login_email"] = email
+            return redirect(url_for("customer_login"))
+
+        if not check_password_hash(user.password, password):
+            flash("סיסמה שגויה", "error")
+            session["login_email"] = email
+            return redirect(url_for("customer_login"))
+
+        # Login success
+        session.pop("login_email", None)
+        session["logged_in"] = True
+        session["user"] = {
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "passport_number": user.passport_number,
+            "phones": user.phones
+        }
+
+        # Also update booking if it exists
+        if session.get("booking"):
+            session["booking"] = session.get("booking")
             session["booking"]["customer"] = {
                 "first_name": user.first_name,
                 "last_name": user.last_name,
@@ -729,14 +811,13 @@ def customer_login():
                 "phones": user.phones
             }
             session["booking"]["logged_in"] = True
-
             return redirect(url_for("select_seat"))
 
-        return redirect(url_for("customer_login"))
+            # After login, always return to homepage
+        return redirect(url_for("homepage"))
 
-    # GET
-    email = session.pop("login_email", "")
-    return render_template("flight_login.html", email=email)
+    # GET request – render nice login form
+    return render_template("customer_login.html", email=email)
 
 
 
@@ -846,7 +927,8 @@ def register():
             "email": user.email,
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "passport_number": user.passport_number
+            "passport_number": user.passport_number,
+            "phones": user.phones
         }
         session["logged_in"] = True
 
@@ -860,11 +942,9 @@ def register():
                     "phones": user.phones
                 }
 
-            flash("הרשמה בוצעה בהצלחה! אתה מחובר עכשיו.")
             return redirect(url_for("select_seat"))
 
         # --- No booking in session → redirect to home/profile ---
-        flash("הרשמה בוצעה בהצלחה! אתה מחובר עכשיו.")
         return redirect(url_for("homepage"))
 
     # GET → show form
@@ -890,6 +970,16 @@ def customer_details():
         if phone_2:
             phones.append(phone_2)
 
+        existing_user = Registered.find_by_email(email)
+        if existing_user:
+            flash("המייל הזה כבר רשום במערכת. אנא הזן מייל אחר או התחבר כדי להמשיך.", "error")
+            return render_template(
+            "customer_details.html",
+            num_passengers=booking.get("passengers_count", 1),
+            logged_in=booking.get("logged_in", False),
+            steps=STEPS,
+            current_step=1
+        )
         # Save to session
         booking["customer"] = {
             "first_name": first_name,
@@ -962,8 +1052,41 @@ def select_seat():
 
     if request.method == "POST":
         selected = request.form.getlist("seat_number")
+
+        # Remove seats that are already taken (extra safety)
         selected = [s for s in selected if s not in taken_seats]
-        selected = selected[:passengers_count]
+
+        # 🔸 Save current selection in session so it won't be lost on errors
+        booking["seat_numbers"] = selected
+        session["booking"] = booking
+
+        # 1️⃣ Check that at least one seat was selected
+        if not selected:
+            flash("יש לבחור מושבים לפני שממשיכים לשלב הבא", "error")
+            return redirect(url_for("select_seat"))
+
+        # 2️⃣ Check that the number of seats equals passengers count
+        if len(selected) != passengers_count:
+            flash(
+                f"יש לבחור בדיוק {passengers_count} מושבים. "
+                f"בחרתם {len(selected)}.",
+                "error"
+            )
+            return redirect(url_for("select_seat"))
+
+        # 3️⃣ Re-check availability in the database (race condition protection)
+        taken_seats_now = Seat.get_taken_seats_for_flight(flight_id)
+        conflict = set(selected) & set(taken_seats_now)
+
+        if conflict:
+            flash(
+                "אחד או יותר מהמושבים שבחרתם נתפסו בינתיים. "
+                "אנא בחרו מושבים אחרים.",
+                "error"
+            )
+            return redirect(url_for("select_seat"))
+
+        # ✅ All validations passed – now we finalize the booking seats
 
         seat_map = {s.seat_number: s for s in seats}
 
@@ -986,10 +1109,13 @@ def select_seat():
                 else:
                     economy_count += 1
 
-
         booking["seats"] = selected_seats
         booking["business_seats_count"] = business_count
         booking["economy_seats_count"] = economy_count
+
+        # After successful validation, we can even clean seat_numbers if you want:
+        # booking.pop("seat_numbers", None)
+
         session["booking"] = booking
 
         return redirect(url_for("summary"))
@@ -1011,6 +1137,7 @@ def select_seat():
         passengers_count=passengers_count,
         current_step=2
     )
+
 
 @app.route("/summary")
 def summary():
@@ -1112,34 +1239,222 @@ def confirmation():
     It should only be accessible after completing the payment process.
     """
 
-    # Remove booking info from session
-    session.pop("booking", None)  # <-- None prevents KeyError if it doesn't exist
+    # Get the last order_id from session
+    order_id = session.pop("order_id", None)
 
-    # Render the confirmation page
-    return render_template("confirmation.html")
+    if not order_id:
+        # אם אין order_id בסשן, נחזיר לדף הבית
+        flash("לא נמצאה הזמנה להצגה.", "error")
+        return redirect(url_for("homepage"))
+
+    # שליפת פרטי ההזמנה מהמסד
+    order = Order.get_by_id(order_id)
+    session.pop("booking", None)
+
+    return render_template(
+        "confirmation.html",
+        order=order
+    )
+
 
 
 @app.route("/customer-logout")
 def customer_logout():
         session.pop("user", None)  # מוחק את פרטי המשתמש
         session["logged_in"] = False  # או session.pop("logged_in", None)
+        session.pop("booking", None)
         return redirect(url_for("homepage"))
 
+# ======================================
+# Route: Guest Booking Lookup Form
+# ======================================
+@app.route("/guest-booking-lookup", methods=["GET", "POST"])
+def guest_booking_lookup():
+    """
+    Guest booking lookup by email + booking code.
+    Only allow bookings for flights that have not departed yet.
+    """
+    # Initialize empty values for the form
+    email = ""
+    booking_code = ""
 
-@app.route("/order_history")
-def order_history():
-    return render_template("order_history.html")
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        booking_code = request.form.get("booking_code", "").strip()
+
+        # 1️⃣ Validate input
+        if not email or not booking_code:
+            flash("יש להזין אימייל וקוד הזמנה", "error")
+            # Instead of redirect, render template with the current values
+            return render_template(
+                "guest_booking_lookup.html",
+                email=email,
+                booking_code=booking_code
+            )
+
+        # 2️⃣ Lookup booking
+        booking = Order.get_by_email_and_code(email, booking_code)
+        if not booking:
+            flash("ההזמנה לא נמצאה. אנא בדקו את האימייל וקוד ההזמנה שהזנתם.", "error")
+            return render_template(
+                "guest_booking_lookup.html",
+                email=email,
+                booking_code=booking_code
+            )
+
+        # 3️⃣ Lookup flight for this booking
+        flight = Flight.get_by_id(booking.flight_id)
+        if not flight:
+            flash("לא נמצאו פרטי הטיסה עבור הזמנה זו.", "error")
+            return render_template(
+                "guest_booking_lookup.html",
+                email=email,
+                booking_code=booking_code
+            )
+
+        # 4️⃣ Check if flight has departed
+        departure_dt = flight["departure_datetime"]
+        if departure_dt < datetime.now():
+            flash("טיסה זו כבר המריאה ולא ניתן לצפות בה.", "error")
+            return render_template(
+                "guest_booking_lookup.html",
+                email=email,
+                booking_code=booking_code
+            )
+
+        # 5️⃣ Flight is valid and in the future -> redirect to summary
+        return redirect(url_for("booking_summary", booking_id=booking.order_id))
+
+    # GET request -> show lookup form
+    return render_template(
+        "guest_booking_lookup.html",
+        email=email,
+        booking_code=booking_code
+    )
 
 
 
+# ======================================
+# Route: Guest Booking Summary
+# ======================================
+@app.route("/booking-summary/<int:booking_id>")
+def booking_summary(booking_id):
+    """
+    Show booking summary with customer info, seats, and cancellation eligibility.
+    """
+    booking = Order.get_by_id(booking_id)
+    if not booking:
+        flash("לא נמצאה הזמנה זו.", "error")
+        return redirect(url_for("home"))
+
+    # Get flight departure datetime
+    flight = Flight.get_by_id(booking.flight_id)
+    departure_dt = flight["departure_datetime"]
+    now = datetime.now()
+
+    # Calculate hours until flight
+    hours_to_departure = (departure_dt - now).total_seconds() / 3600
+
+    # Flag to check if cancellation is allowed
+    can_cancel = booking.order_status == "ACTIVE" and hours_to_departure >= 36
+
+    # Calculate cancellation fee for display (5%)
+    cancellation_fee = booking.total_amount * 0.05 if can_cancel else 0
+
+    return render_template(
+        "booking_summary.html",
+        booking=booking,
+        can_cancel=can_cancel,
+        cancellation_fee=cancellation_fee
+    )
 
 
+@app.route("/cancel-booking/<int:order_id>", methods=["GET", "POST"])
+def cancel_booking(order_id):
+    booking = Order.get_by_id(order_id)
+    if not booking:
+        flash("לא נמצאה הזמנה זו.", "error")
+        return redirect(url_for("home"))
+
+    # Get flight info
+    flight = Flight.get_by_id(booking.flight_id)
+    departure_dt = flight["departure_datetime"]
+    now = datetime.now()
+    hours_to_departure = (departure_dt - now).total_seconds() / 3600
+
+    if hours_to_departure < 36:
+        flash("מועד הטיסה הינו פחות מ-36 שעות ולכן הזמנה זו אינה ניתנת לביטול", "error")
+        return redirect(url_for("booking_summary", booking_id=order_id))
+
+    if request.method == "POST":
+        # Process cancellation
+        try:
+            refund_amount, cancellation_fee = booking.cancel_order()
+            # ✅ Pass ready-to-display numbers to template
+            return render_template("cancel_success.html",
+                                   booking=booking,
+                                   refund_amount=round(refund_amount,2),
+                                   cancellation_fee=round(cancellation_fee,2))
+        except ValueError as e:
+            flash(str(e), "error")
+            return redirect(url_for("booking_summary", booking_id=order_id))
+
+    # GET request -> show confirmation page
+    cancellation_fee = float(booking.total_amount) * 0.05
+    return render_template("cancel_booking.html",
+                           booking=booking,
+                           cancellation_fee=round(cancellation_fee,2))
 
 
+@app.route("/cancel-success/<int:order_id>")
+def cancel_success(order_id):
+    # Fetch order to show info if needed
+    booking = Order.get_by_id(order_id)
 
+    if not booking:
+        flash("לא נמצאה הזמנה עם מספר זה.", "error")
+        return redirect(url_for("home"))
 
+    return render_template("cancel_success.html", booking=booking)
 
+@app.route("/my-bookings")
+def my_bookings():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
 
+    email = session["user"]["email"]
+
+    # ⬅️ כאן אנחנו לוקחים את הערך מה-select
+    selected_status = request.args.get("status")
+
+    # 1️⃣ קח את כל ההזמנות של המשתמש
+    orders = Order.get_by_registered_email(email)
+
+    bookings_with_flights = []
+    now = datetime.now()
+
+    for order in orders:
+        flight = Flight.get_by_id(order.flight_id)  # dict
+
+        # 2️⃣ אם הטיסה עברה ועדיין ACTIVE → נסמן כ-COMPLETED
+        if order.order_status == "ACTIVE" and flight["departure_datetime"] < now:
+            order.order_status = "COMPLETED"
+
+        # 3️⃣ סינון לפי סטטוס אם נבחר כזה
+        if selected_status:
+            if order.order_status != selected_status:
+                continue
+
+        bookings_with_flights.append({
+            "order": order,
+            "flight": flight
+        })
+
+    return render_template(
+        "my_bookings.html",
+        bookings=bookings_with_flights,
+        selected_status=selected_status
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

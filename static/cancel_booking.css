@@ -1,0 +1,105 @@
+/* ===== Cancel Page Styles ===== */
+body {
+    margin: 0;
+    font-family: "Arial", sans-serif;
+    background-image: url("/static/imgs/background.png");
+    background-size: cover;
+    background-position: center;
+    color: #0b3c78;
+    direction: rtl;
+}
+
+.card {
+    max-width: 700px;
+    margin: 50px auto;
+    background: rgba(255,255,255,0.5);
+    padding: 40px 35px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    text-align: center;
+    position: relative;
+}
+
+.card img.warning {
+    width: 120px;
+    display: block;
+    margin: 0 auto 25px auto;
+}
+
+h2 {
+    color: #0b3c78;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 17px;
+    margin: 12px 0;
+}
+
+strong {
+    color: #1a73e8;
+}
+
+.buttons {
+    margin-top: 30px;
+}
+
+.buttons .submit-btn {
+    display: inline-block;
+    padding: 12px 25px;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    margin: 0 10px;
+    transition: 0.2s ease;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background: #e53935;
+    color: white;
+    border: none;
+}
+
+.cancel-btn:hover {
+    background: #b71c1c;
+}
+
+.back-btn {
+    background: #0d47a1;
+    color: white;
+}
+
+.back-btn:hover {
+    background: #607d8b;
+}
+
+.info-text {
+    margin-top: 25px;
+    font-size: 15px;
+    color: #555;
+}
+
+.cannot-cancel {
+    color:#e53935;
+    font-weight:bold;
+    font-size: 17px;
+}
+
+@media (max-width: 650px) {
+    .card {
+        padding: 30px 20px;
+    }
+    h2 {
+        font-size: 24px;
+    }
+    p {
+        font-size: 16px;
+    }
+    .buttons .submit-btn {
+        font-size: 15px;
+        padding: 10px 20px;
+    }
+}

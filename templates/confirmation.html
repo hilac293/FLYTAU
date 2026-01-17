@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='confirmation.css') }}">
 {% endblock %}
 
-
 {% block content %}
 <body>
 
@@ -16,15 +15,15 @@
          class="confirmation-image">
 
     <h1>ההזמנה שלך אושרה בהצלחה! ✨</h1>
+    <p>מספר הזמנה למעקב: <strong>{{ order.order_id }}</strong></p>
     <p>אפשר להתחיל להתכונן לחופשה בלתי נשכחת ✈️🌴</p>
 
 </div>
 
-    <!-- Back to Home Button -->
+<!-- Back to Home Button -->
 <div class="button-container">
     <a href="{{ url_for('homepage') }}" class="home-btn">חזרה לדף הבית</a>
 </div>
-
 
 </body>
 {% endblock %}

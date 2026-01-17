@@ -55,7 +55,17 @@
         </tbody>
     </table>
 {% else %}
-    <p class="message">לא נמצאו טיסות זמינות שתואמות לחיפוש שלך</p>
+<div class="no-flights-container">
+    <img src="{{ url_for('static', filename='imgs/flights_not_found.png') }}"
+         alt="No flights found"
+         class="no-flights-image">
+
+    <h2 class="no-flights-title">לא נמצאו טיסות</h2>
+    <p class="no-flights-text">
+        לצערנו לא מצאנו טיסות שתואמות לחיפוש שלך.<br>
+        נסו לשנות תאריכים, יעד או מספר נוסעים.
+    </p>
+</div>
 {% endif %}
 
 <a href="{{ url_for('homepage') }}" class="btn home-btn">חזרה לדף הבית</a>

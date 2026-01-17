@@ -24,22 +24,34 @@
 
     <h2>פרטי לקוח</h2>
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-container">
+              {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    <span class="flash-icon">⚠️</span>
+                    <span class="flash-text">{{ message }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
     <form method="post">
 
         <!-- First Name -->
         <div class="field">
             <i class="fa-solid fa-user"></i>
             <input type="text" name="first_name" placeholder="שם פרטי (באנגלית)" required
-                   pattern="[A-Za-z\-]+" title="אנא הכנס שם באנגלית בלבד"
+                   pattern="[A-Za-z\- ]+" title="אנא הכנס שם באנגלית בלבד (אותיות, רווח או מקף)"
                    value="{{ user.first_name if user else '' }}">
         </div>
 
         <!-- Last Name -->
         <div class="field">
-            <i class="fa-solid fa-user"></i>
-            <input type="text" name="last_name" placeholder="שם משפחה (באנגלית)" required
-                   pattern="[A-Za-z\-]+" title="אנא הכנס שם באנגלית בלבד"
-                   value="{{ user.last_name if user else '' }}">
+        <input type="text" name="last_name" placeholder="שם משפחה (באנגלית)" required
+               pattern="[A-Za-z\- ]+" title="אנא הכנס שם באנגלית בלבד (אותיות, רווח או מקף)"
+               value="{{ user.last_name if user else '' }}">
         </div>
 
 
@@ -51,22 +63,28 @@
                    value="{{ user.email if user else '' }}">
         </div>
 
-               <!-- Phone 1 -->
+        <!-- Phone numbers -->
         <div class="field">
-                <i class="fa-solid fa-phone"></i>
+            <i class="fa-solid fa-phone"></i>
             <input type="tel"
                    name="phone_1"
                    placeholder="מספר טלפון"
-                   value="{{ user.phones[0] if user and user.phones|length > 0 else '' }}">
+                   pattern="\d{10}"
+                   title="טלפון חייב להיות 10 ספרות רצופות"
+                   required
+                   dir="rtl"
+                   value="{{ prev_data.phone_1 if prev_data else '' }}">
         </div>
 
-        <!-- Phone 2 -->
         <div class="field">
-                <i class="fa-solid fa-phone"></i>
+            <i class="fa-solid fa-phone"></i>
             <input type="tel"
                    name="phone_2"
                    placeholder="מספר טלפון נוסף (אופציונלי)"
-                   value="{{ user.phones[1] if user and user.phones|length > 1 else '' }}">
+                   pattern="\d{10}"
+                   title="טלפון חייב להיות 10 ספרות רצופות"
+                   dir="rtl"
+                   value="{{ prev_data.phone_2 if prev_data else '' }}">
         </div>
 
         <!-- Submit -->

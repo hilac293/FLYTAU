@@ -51,8 +51,10 @@
             <div class="field">
                 <label for="departure">תאריך יציאה</label>
                 <input type="date" id="departure" name="departure"
-                       min="{{ min_date }}" max="{{ max_date }}" required
+                       min="{{ min_date }}"
+                       required
                        value="{{ prev_departure or '' }}">
+<!--                max="{{ max_date }}"-->
             </div>
 
             <!-- Number of passengers -->

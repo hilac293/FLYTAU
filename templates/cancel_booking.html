@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}אישור ביטול הזמנה{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cancel_booking.css') }}">
+{% endblock %}
+
+{% block content %}
+<body>
+
+<div class="card">
+    <!-- Warning Image -->
+    <img class="warning" src="{{ url_for('static', filename='imgs/remove_warning.png') }}" alt="אזהרה">
+
+    <h2>ביטול הזמנה</h2>
+
+        <p>אתה עומד לבטל את ההזמנה מספר <strong>{{ booking.order_id }}</strong>.</p>
+        <p>דמי ביטול בגובה 5% מסך ההזמנה: <strong>{{ cancellation_fee | round(2) }} ₪</strong></p>
+        <p>סכום שיוחזר לאחר דמי הביטול: <strong>{{ (booking.total_amount - cancellation_fee) | round(2) }} ₪</strong></p>
+
+        <div class="buttons">
+            <form action="{{ url_for('cancel_booking', order_id=booking.order_id) }}" method="POST" style="display:inline-block;">
+                <button type="submit" class="submit-btn cancel-btn">בטל הזמנה זו</button>
+            </form>
+
+            <a href="{{ url_for('booking_summary', booking_id=booking.order_id) }}" class="submit-btn back-btn">
+                חזור לסיכום
+            </a>
+        </div>
+
+        <p class="info-text">שים לב: ניתן לבטל עד 36 שעות ממועד הטיסה. דמי הביטול מנוכים מסך ההזמנה.</p>
+</div>
+
+</body>
+{% endblock %}

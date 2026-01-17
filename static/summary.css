@@ -241,3 +241,13 @@ h2 {
         padding: 4px 10px;
     }
 }
+
+.cancel-btn {
+    background: #e53935;
+    color: white;
+    border: none;
+}
+
+.cancel-btn:hover {
+    background: #b71c1c;
+}
