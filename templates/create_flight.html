@@ -10,6 +10,12 @@
   <div class="page">
     <div class="card">
 
+      {% if error %}
+        <div class="notice error" style="margin-bottom:10px;">
+          {{ error }}
+        </div>
+      {% endif %}
+
       <div class="header">
         <h2>יצירת טיסה חדשה</h2>
         <p>הזן פרטי טיסה</p>
@@ -20,7 +26,7 @@
 
           <div class="field">
             <label>תאריך יציאה</label>
-            <input type="date" name="date" required>
+            <input type="date" name="date" required min="{{ current_date }}" max="{{ max_date }}">
           </div>
 
           <div class="field">
@@ -28,7 +34,6 @@
             <input type="time" name="time" required>
           </div>
 
-          <!-- spacer -->
           <div style="grid-column: span 2; height: 6px;"></div>
 
           <div class="field">
@@ -41,7 +46,6 @@
             <input type="text" name="destination" required>
           </div>
 
-          <!-- spacer -->
           <div style="grid-column: span 2; height: 6px;"></div>
 
           <div class="field">

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>ביטול טיסה</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <div class="page">
+    <div class="card">
+
+      <h2 style="margin:0 0 12px;">ביטול טיסה</h2>
+      <p>בחר טיסה לביטול (ניתן לבטל עד 72 שעות לפני המראה בלבד)</p>
+
+      {% if error %}
+        <div class="notice error">{{ error }}</div>
+      {% endif %}
+
+      {% if success %}
+        <div class="notice">{{ success }}</div>
+      {% endif %}
+
+      <div class="table-wrap" style="margin-top:14px;">
+        <table>
+          <thead>
+            <tr>
+              <th>מס' טיסה</th>
+              <th>תאריך המראה</th>
+              <th>מוצא</th>
+              <th>יעד</th>
+              <th>סטטוס</th>
+              <th>ביטול</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in flights %}
+            <tr>
+              <td>{{ f.flight_id }}</td>
+              <td>{{ f.departure_datetime }}</td>
+              <td>{{ f.origin }}</td>
+              <td>{{ f.destination }}</td>
+              <td>
+                {% if f.flight_status == "Cancelled" %}
+                  <span style="color:#d9534f; font-weight:bold;">מבוטל</span>
+                {% else %}
+                  <span style="color:#28a745; font-weight:bold;">פעיל</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if f.flight_status == "Cancelled" %}
+                  —
+                {% else %}
+                  <form method="POST" style="margin:0;">
+                    <input type="hidden" name="flight_id" value="{{ f.flight_id }}">
+                    <button class="btn btn-red" type="submit">
+                      בטל ❌
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

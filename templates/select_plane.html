@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>בחירת מטוס</title>
+  <title>Select Plane</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
   <div class="page">
     <div class="header">
-      <h2>בחירת מטוס לטיסה</h2>
-      <p>בחר/י מטוס אחד מהרשימה הזמינה</p>
+      <h2>Select Plane for Flight</h2>
+      <p>Select one available aircraft from the list</p>
     </div>
 
     <div class="card">
+
       {% if not planes %}
-        <div class="notice error">❌ אין מטוסים זמינים לטיסה זו</div>
-        <a class="link" href="/create-flight">חזרה ליצירת טיסה</a>
+        <div class="notice error">❌ No available planes for this flight</div>
+        <a class="link" href="/create-flight">Back to Flight Creation</a>
       {% else %}
 
       {% if error %}
@@ -23,38 +25,57 @@
       {% endif %}
 
       <form method="POST" action="/select-crew">
+
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>בחירה</th>
-                {% for col in plane_columns %}
-                  <th>{{ col }}</th>
-                {% endfor %}
+                <th>Select</th>
+                <th>Plane ID</th>
+                <th>Producer</th>
+                <th>Total Seats</th>
+                <th>Long Flight</th>
+                <th>Last Origin</th>
+                <th>Last Destination</th>
+                <th>Last Arrival</th>
               </tr>
             </thead>
+
             <tbody>
               {% for plane in planes %}
-                <tr>
-                  <td class="pick">
-                    <input type="radio" name="plane_id" value="{{ plane['plane_id'] }}" required>
-                  </td>
-                  {% for col in plane_columns %}
-                    <td>{{ plane[col] }}</td>
-                  {% endfor %}
-                </tr>
+              <tr>
+                <td class="pick">
+                  <input type="radio" name="plane_id" value="{{ plane['plane_id'] }}" required>
+                </td>
+                <td>{{ plane['plane_id'] }}</td>
+                <td>{{ plane['producer'] }}</td>
+                <td>{{ plane['total_seats'] }}</td>
+                <td>{{ 'Yes' if plane['is_long_flight'] else 'No' }}</td>
+                <td>{{ plane['last_origin'] if plane['last_origin'] else '-' }}</td>
+                <td>{{ plane['last_destination'] if plane['last_destination'] else '-' }}</td>
+                <td>
+                  {% if plane['last_arrival'] %}
+                    {{ plane['last_arrival'].strftime('%Y-%m-%d %H:%M') }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+              </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
 
         <div class="actions">
-          <button class="btn btn-primary" type="submit">המשך לבחירת צוות →</button>
-          <a class="btn btn-ghost" href="/create-flight" style="text-decoration:none; display:inline-grid; place-items:center;">חזרה</a>
+          <button class="btn btn-primary" type="submit">Continue →</button>
+          <a class="btn btn-ghost" href="/create-flight" style="text-decoration:none; display:inline-grid; place-items:center;">
+            Back
+          </a>
         </div>
-      </form>
 
+      </form>
       {% endif %}
+
     </div>
   </div>
 </body>

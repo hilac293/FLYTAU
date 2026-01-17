@@ -51,7 +51,7 @@ body{
 .form-grid{
   display:grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px 18px;
+  gap: 14px 35px;
   margin-top: 16px;
 }
 
@@ -103,6 +103,15 @@ body{
   background: linear-gradient(90deg, var(--blue), var(--blue2));
 }
 .btn-primary:hover{ transform: translateY(-1px); opacity: .96; }
+
+.btn-red {
+  background: #d9534f;
+  color: #fff;
+}
+.btn-red:hover {
+  opacity: .9;
+  transform: translateY(-1px);
+}
 
 .btn-ghost{
   color: #0b66d6;
