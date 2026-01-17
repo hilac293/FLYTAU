@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>לוח טיסות</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="dashboard-page">
+  <div class="page">
+    <div class="card">
+      <div class="header">
+        <h2>לוח טיסות</h2>
+        <p>צפייה וסינון של כל הטיסות במערכת</p>
+      </div>
+
+      <form method="POST">
+        <div class="form-grid">
+
+          <div class="field">
+            <label>תאריך</label>
+            <input type="date" name="date">
+          </div>
+
+          <div class="field">
+            <label>מוצא</label>
+            <input type="text" name="origin" placeholder="לדוגמה: TLV">
+          </div>
+
+          <div class="field">
+            <label>יעד</label>
+            <input type="text" name="destination" placeholder="לדוגמה: JFK">
+          </div>
+
+          <div class="field">
+            <label>סטטוס טיסה</label>
+            <select name="status">
+              <option value="">הכל</option>
+              {% for code, name in statuses %}
+                <option value="{{ code }}">{{ name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-primary" type="submit">סנן</button>
+        </div>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>תאריך יציאה</th>
+              <th>מוצא</th>
+              <th>יעד</th>
+              <th>סטטוס</th>
+              <th>מטוס</th>
+              <th>מחיר רגיל</th>
+              <th>מחיר ביזנס</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in flights %}
+            <tr>
+              <td>{{ f.flight_id }}</td>
+              <td>{{ f.departure_datetime }}</td>
+              <td>{{ f.origin }}</td>
+              <td>{{ f.destination }}</td>
+              <td>
+                {% if f.flight_status == "Scheduled" %}
+                  <span style="color:green;font-weight:bold;">פעילה</span>
+                {% elif f.flight_status == "Fully_Booked" %}
+                  <span style="color:orange;font-weight:bold;">תפוסה מלאה</span>
+                {% elif f.flight_status == "Accrued" %}
+                  <span style="color:gray;font-weight:bold;">התקיימה</span>
+                {% elif f.flight_status == "Cancelled" %}
+                  <span style="color:red;font-weight:bold;">בוטלה</span>
+                {% else %}
+                  {{ f.flight_status }}
+                {% endif %}
+              </td>
+              <td>{{ f.plane_id }}</td>
+              <td>{{ f.regular_price }} ₪</td>
+              <td>{{ f.business_price }} ₪</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

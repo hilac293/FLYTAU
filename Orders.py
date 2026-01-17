@@ -222,6 +222,27 @@ class Order:
 
         return refund_amount
 
+    @staticmethod
+    def refund_orders_by_flight(flight_id):
+        """
+        Refund all orders for a given flight:
+        - Set order_status to 'cancelled_by_company'
+        - Set total_amount to 0
+        """
+        conn = get_connection("FLYTAU")
+        cursor = conn.cursor()
+
+        cursor.execute("""
+                UPDATE Orders
+                SET order_status = 'CANCELLED_BY_SYSTEM',
+                    total_amount = 0
+                WHERE flight_id = %s
+            """, (flight_id,))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
 
 
 
