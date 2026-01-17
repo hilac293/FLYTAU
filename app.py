@@ -32,9 +32,9 @@ STEPS = [
     "תשלום"
 ]
 
-@app.route("/")
-def root():
-    return redirect(url_for("homepage"))
+# @app.route("/")
+# def root():
+#     return redirect(url_for("homepage"))
 
 # ======================================================
 # Login
