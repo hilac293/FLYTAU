@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}היסטוריית הזמנות{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='my_bookings.css') }}">
+{% endblock %}
+
+{% block content %}
+<body>
+
+{% set status_map = {
+    "ACTIVE": "פעילה",
+    "COMPLETED": "בוצעה",
+    "CANCELLED_BY_CUSTOMER": "ביטול לקוח",
+    "CANCELLED_BY_SYSTEM": "ביטול מערכת"
+} %}
+
+<div class="container">
+
+    <h2>ההזמנות שלי</h2>
+
+    <!-- Filter form -->
+    <form method="get" class="filter-form">
+        <label for="status">סינון לפי סטטוס:</label>
+        <select name="status" id="status" onchange="this.form.submit()">
+            <option value="" {% if not selected_status %}selected{% endif %}>הכל</option>
+            <option value="ACTIVE" {% if selected_status=='ACTIVE' %}selected{% endif %}>פעילה</option>
+            <option value="COMPLETED" {% if selected_status=='COMPLETED' %}selected{% endif %}>בוצעה</option>
+            <option value="CANCELLED_BY_CUSTOMER" {% if selected_status=='CANCELLED_BY_CUSTOMER' %}selected{% endif %}>ביטול לקוח</option>
+            <option value="CANCELLED_BY_SYSTEM" {% if selected_status=='CANCELLED_BY_SYSTEM' %}selected{% endif %}>ביטול מערכת</option>
+        </select>
+    </form>
+
+    <!-- Bookings Table -->
+    <table class="bookings-table">
+        <thead>
+            <tr>
+                <th>מספר הזמנה</th>
+                <th>מספר טיסה</th>
+                <th>מוצא</th>
+                <th>יעד</th>
+                <th>תאריך המראה</th>
+                <th>מחיר</th>
+                <th>סטטוס</th>
+                <th>פעולות</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+                {% set flight = booking.flight %}
+                <tr>
+                    <td>{{ booking.order.order_id }}</td>
+                    <td>{{ booking.flight.flight_id }}</td>
+                    <td>{{ flight["origin"] }}</td>
+                    <td>{{ flight["destination"] }}</td>
+
+                    <td>
+                        {{ flight["departure_datetime"].strftime("%d/%m/%Y") }}
+                    </td>
+
+                    <td>{{ booking.order.total_amount | round(2) }} ₪</td>
+                    <td>
+                        <span class="status-badge status-{{ booking.order.order_status }}">
+                            {{ status_map.get(booking.order.order_status, booking.order.order_status) }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('booking_summary', booking_id=booking.order.order_id) }}" class="view-btn">
+                            צפייה
+                        </a>
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+{% endblock %}

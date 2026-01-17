@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}ההזמנה בוטלה בהצלחה{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='cancel_success.css') }}">
+{% endblock %}
+
+{% block content %}
+<body>
+
+<div class="card">
+
+    <img src="{{ url_for('static', filename='imgs/canceled_flight.png') }}" alt="Success" class="success-icon">
+
+    <h2>הזמנה בוטלה בהצלחה!</h2>
+
+    <p>מספר ההזמנה: <strong>{{ booking.order_id }}</strong></p>
+    <p>דמי ביטול מנוכים: <strong>{{ cancellation_fee }} ₪</strong></p>
+    <p>סכום שהוחזר: <strong>{{ refund_amount }} ₪</strong></p>
+
+
+    <a href="{{ url_for('homepage') }}" class="submit-btn home-btn">חזור לדף הבית</a>
+
+</div>
+
+</body>
+{% endblock %}

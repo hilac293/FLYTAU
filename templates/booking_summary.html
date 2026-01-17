@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}ההזמנה בוטלה בהצלחה{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='summary.css') }}">
+{% endblock %}
+
+{% block content %}
+<body>
+
+<div class="card">
+
+    <h2>סיכום ההזמנה</h2>
+
+    <!-- ===== Flight Graphic ===== -->
+    <div class="flight-graphic">
+        <div class="city">
+            {{ booking.destination }}
+            <div class="flight-time">
+                {{ booking.arrival_datetime.strftime("%H:%M") }}
+            </div>
+        </div>
+
+        <div class="plane-path-container">
+            <div class="plane-icon">
+                <i class="fa-solid fa-plane"></i>
+            </div>
+            <svg class="flight-curve" viewBox="0 0 600 80" preserveAspectRatio="none">
+                <path d="M10,70 C150,10 450,10 590,70"
+                      stroke="#1a73e8" stroke-width="3" fill="transparent"/>
+            </svg>
+        </div>
+
+        <div class="city">
+            {{ booking.origin }}
+            <div class="flight-time">
+                {{ booking.departure_datetime.strftime("%H:%M") }}
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Flight Info ===== -->
+    <div class="section-title">פרטי הטיסה</div>
+    <div class="flight-info">
+        <p><span class="label">מספר טיסה:</span> {{ booking.flight_id }}</p>
+        <p><span class="label">תאריך יציאה:</span>
+            {{ booking.departure_datetime.strftime("%d/%m/%Y") }}</p>
+        <p><span class="label">תאריך נחיתה:</span>
+            {{ booking.arrival_datetime.strftime("%d/%m/%Y") }}</p>
+        <p><span class="label">שעת יציאה:</span>
+            {{ booking.departure_datetime.strftime("%H:%M") }}</p>
+        <p><span class="label">שעת נחיתה:</span>
+            {{ booking.arrival_datetime.strftime("%H:%M") }}</p>
+        <p><span class="label">משך טיסה:</span> {{ booking.duration }} שעות</p>
+    </div>
+
+    <!-- ===== Customer Info ===== -->
+    <div class="section-title">פרטי הלקוח</div>
+    <div class="customer-info">
+        <p>
+            <span class="label">שם:</span>
+            {{ booking.customer.first_name }} {{ booking.customer.last_name }}
+        </p>
+
+        <p>
+            <span class="label">אימייל:</span>
+            {{ booking.customer.email }}
+        </p>
+
+        <p>
+            <span class="label">טלפונים:</span>
+            {% for phone in booking.customer.phones %}
+                <span class="phone-number">{{ phone }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            <span class="label">מספר נוסעים:</span>
+            {{ booking.seats|length }}
+        </p>
+
+        <p>
+            <span class="label">מושבים:</span>
+            {% for seat in booking.seats %}
+                <span class="seat-tag">{{ seat.seat_number }}</span>
+            {% endfor %}
+        </p>
+
+        <p>
+            <span class="label">סך לתשלום:</span>
+            {{ booking.total_amount | round(2) }} ₪
+        </p>
+    </div>
+
+<!-- ===== Action Button ===== -->
+{% if can_cancel %}
+    <form action="{{ url_for('cancel_booking', order_id=booking.order_id) }}" method="GET">
+        <button type="submit" class="submit-btn cancel-btn">
+            ביטול הזמנה
+        </button>
+    </form>
+{% elif booking.order_status != "ACTIVE" %}
+    <div class="flash-message info">
+        הזמנה זו בוטלה בעבר
+    </div>
+{% else %}
+    <div class="flash-message error">
+        מועד הטיסה הינו פחות מ-36 שעות ולכן הזמנה זו אינה ניתנת לביטול
+    </div>
+{% endif %}
+
+
+
+</div>
+
+</body>
+{% endblock %}

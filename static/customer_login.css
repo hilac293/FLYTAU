@@ -1,0 +1,122 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+    font-family: "Arial", sans-serif;
+    background-image: url("/static/imgs/background.png");
+    background-size: cover;
+    background-position: center;
+    color: #0b3c78;
+
+    display: flex;
+    justify-content: center;  /* center horizontally */
+    align-items: center;      /* center vertically */
+}
+
+/* ===== Container ===== */
+.login-container {
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+}
+
+/* ===== Card ===== */
+.login-card {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 40px 55px;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    text-align: center;
+}
+
+
+/* ===== Titles ===== */
+h1 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #0b3c78;
+    text-align: center;
+    font-size: 28px;
+}
+
+.subtitle {
+    color: #355f8a;
+    margin-bottom: 28px;
+    text-align: center;
+    font-size: 16px;
+}
+
+/* ===== Form ===== */
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="email"],
+input[type="password"] {
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    border-radius: 10px;
+    border: 1px solid #cfddee;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: #1a73e8;
+    box-shadow: 0 0 10px rgba(26,115,232,0.3);
+}
+
+/* ===== Submit Button ===== */
+button[type="submit"] {
+    padding: 14px;
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 17px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+button[type="submit"]:hover {
+    background-color: #1558b0;
+}
+
+/* ===== Error Messages ===== */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #fff4e5; /* light orange */
+    color: #9c5700; /* dark orange text */
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    font-weight: 600;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.error-icon {
+    font-size: 20px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+    .login-card {
+        padding: 35px 25px;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    button[type="submit"] {
+        font-size: 15px;
+        padding: 12px;
+    }
+}

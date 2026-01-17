@@ -59,11 +59,25 @@
 }
 
 /* ===== Seat Status ===== */
+/* ===== Taken seats (must override everything) ===== */
 .seat.taken span {
-    background-color: #555;  /* gray for occupied */
+    background-color: #cac7c7 !important;
+    color: #222;
     cursor: not-allowed;
-    color: #000;
+    opacity: 0.6;
 }
+
+/* Disable hover animation on taken seats */
+.seat.taken:hover {
+    transform: none;
+}
+
+/* Make sure taken seats never look like selected */
+.seat.taken input:checked + span {
+    background-color: #bcbcbc !important;
+    color: #222;
+}
+
 
 /* Selected seat */
 .seat input:checked + span {
@@ -146,6 +160,11 @@
     background-color: #a0c4ff;
 }
 
+.seat-legend .legend-item .seat.taken {
+    background-color: #cac7c7;
+    opacity: 0.6;
+}
+
 /* Optional separator line for visual break */
 .seat-separator {
     width: 100%;
@@ -161,6 +180,63 @@
     border-right: 2px dashed #0b3c78;  /* dashed line for aisle */
     border-left: 2px dashed #0b3c78;  /* dashed line for aisle */
     margin: 0 6px;               /* spacing from seats */
+}
+
+
+
+.error-message {
+    background-color: #b71c1c;/* light red */
+    color: #ffffff;
+    padding: 10px;
+    border: 1px solid #f44336;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    text-align: right;
+}
+
+.flash-container {
+    width: 100%;
+    max-width: 650px;
+    margin: 15px auto;
+}
+
+.flash-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    animation: slideDown 0.3s ease;
+}
+
+/* Warning style */
+.flash-message.error {
+    background: linear-gradient(90deg, #fff3cd, #ffe8a1);
+    color: #7a5d00;
+    border: 1px solid #ffcc00;
+}
+
+.flash-icon {
+    font-size: 22px;
+}
+
+.flash-text {
+    flex: 1;
+    text-align: right;
+}
+
+/* Small animation */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 

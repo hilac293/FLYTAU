@@ -1,12 +1,13 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>פתיחת חשבון</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}תוצאות חיפוש טיסות{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
 
 <div class="page">
 
@@ -47,6 +48,7 @@
                    pattern="\d{10}"
                    title="טלפון חייב להיות 10 ספרות רצופות"
                    required
+                   dir="rtl"
                    value="{{ prev_data.phone_1 if prev_data else '' }}">
         </div>
 
@@ -57,6 +59,7 @@
                    placeholder="מספר טלפון נוסף (אופציונלי)"
                    pattern="\d{10}"
                    title="טלפון חייב להיות 10 ספרות רצופות"
+                   dir="rtl"
                    value="{{ prev_data.phone_2 if prev_data else '' }}">
         </div>
 
@@ -101,6 +104,4 @@
     </form>
 
 </div>
-
-</body>
-</html>
+{% endblock %}

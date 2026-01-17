@@ -30,12 +30,21 @@ body {
     font-size: 2.1rem;
     color: #1a73e8;
     font-weight: 600;
+    margin-bottom: 15px;
+}
+
+/* Order number */
+.confirmation-container p strong {
+    color: #1558b0;
+    font-size: 1.1rem;
 }
 
 /* Subtitle */
 .confirmation-container p {
     font-size: 1.05rem;
-    color: #555;}
+    color: #555;
+    margin: 8px 0;
+}
 
 /* Button */
 .home-btn {
@@ -53,8 +62,9 @@ body {
 .button-container {
     width: 100%;
     display: flex;
-    justify-content: center;  /* מרכז לרוחב */}
-
+    justify-content: center;  /* מרכז לרוחב */
+    margin-top: 25px;
+}
 
 .home-btn:hover {
     transform: translateY(-2px);

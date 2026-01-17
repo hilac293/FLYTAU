@@ -11,6 +11,8 @@
 
 <body>
 
+
+
 <!-- Progress steps -->
 <div class="progress-steps">
     <div class="line-active" style="width: {{ current_step * 25 }}%;"></div>
@@ -19,6 +21,21 @@
     <div class="step">סיכום הזמנה</div>
     <div class="step">תשלום</div>
 </div>
+
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">
+            <span class="flash-icon">⚠️</span>
+            <span class="flash-text">{{ message }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
 
 <!-- Card -->
 <div class="card">
@@ -41,6 +58,10 @@
                 <span class="seat economy"></span>
                 <span>מחלקת תיירים</span>
             </div>
+            <div class="legend-item">
+                <span class="seat taken"></span>
+                <span>מושב תפוס</span>
+            </div>
         </div>
 
         <div class="seat-separator"></div>
@@ -58,7 +79,6 @@
 
                     <label class="seat
                         {% if seat_info.is_taken %}taken{% endif %}
-                        {% if seat.seat_number in selected_seat_numbers %}selected{% endif %}
                         {% if seat_info.class_type == 'Business' %}business{% else %}economy{% endif %}">
 
                         <input type="checkbox"
@@ -69,6 +89,7 @@
 
                         <span>{{ seat_info.column_letter }}</span>
                     </label>
+
 
                     {% if loop.index == mid %}
                         <div class="aisle"></div>
