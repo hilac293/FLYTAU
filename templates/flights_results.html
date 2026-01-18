@@ -35,8 +35,8 @@
                 <td>{{ flight.destination }}</td>
                 <td>{{ flight.departure_datetime.strftime('%Y-%m-%d %H:%M') }}</td>
                 <td>{{ flight.arrival_datetime.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>{{ flight.regular_price }} ₪</td>
-                <td>{{ flight.business_price }} ₪</td>
+                <td>{{ flight.regular_price }}₪</td>
+                <td>{{ flight.business_price }}₪</td>
                 <td>
                     <form action="{{ url_for('book_flight') }}" method="POST">
                         <input type="hidden" name="flight_id" value="{{ flight.flight_id }}">

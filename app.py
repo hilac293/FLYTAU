@@ -32,6 +32,61 @@ STEPS = [
     "תשלום"
 ]
 
+def update_flight_status():
+    conn = get_connection("FLYTAU")
+    cursor = conn.cursor(dictionary=True)
+
+    # טיסות רלוונטיות Scheduled
+    cursor.execute("""
+        SELECT f.flight_id, f.departure_datetime, f.plane_id, f.flight_status
+        FROM Flights f
+        WHERE f.flight_status = 'Scheduled'
+    """)
+    flights = cursor.fetchall()
+
+    for flight in flights:
+        flight_id = flight['flight_id']
+        plane_id = flight['plane_id']
+        departure = flight['departure_datetime']
+        new_status = None
+
+        # בדיקה אם הטיסה כבר קרתה
+        if departure < datetime.now():
+            new_status = 'Accured'
+        else:
+            # בדיקה אם הטיסה מלאה
+            cursor.execute("""
+                SELECT COUNT(*) AS booked_count
+                FROM Booking_Seats
+                WHERE order_id IN (
+                    SELECT order_id FROM Orders WHERE flight_id = %s AND order_status IN ('ACTIVE','COMPLETED')
+                )
+            """, (flight_id,))
+            booked_count = cursor.fetchone()['booked_count']
+
+            # ספירת מושבים של המטוס
+            cursor.execute("""
+                SELECT SUM(rows_number * columns_number) AS total_seats
+                FROM Plane_Class
+                WHERE plane_id = %s
+            """, (plane_id,))
+            total_seats = cursor.fetchone()['total_seats']
+
+            if booked_count >= total_seats:
+                new_status = 'Fully_Booked'
+
+        # עדכון אם צריך
+        if new_status:
+            cursor.execute("""
+                UPDATE Flights
+                SET flight_status = %s
+                WHERE flight_id = %s
+            """, (new_status, flight_id))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
 # @app.route("/")
 # def root():
 #     return redirect(url_for("homepage"))
@@ -44,7 +99,7 @@ def login():
     """
     Manager login page.
     """
-
+    update_flight_status()
     if request.method == "POST":
         manager_id = request.form["manager_id"]
         password = request.form["password"]
@@ -80,7 +135,7 @@ def dashboard():
     """
     Main manager menu.
     """
-
+    update_flight_status()
     if "manager" not in session:
         return redirect(url_for("homepage"))
 
@@ -94,7 +149,7 @@ def create_flight():
     """
     Step 1: Collect flight details.
     """
-
+    update_flight_status()
     if "manager" not in session:
         return redirect(url_for("homepage"))
 
@@ -221,7 +276,7 @@ def select_crew():
     - Calculate required crew
     - Show available attendants and pilots
     """
-
+    update_flight_status()
     if "manager" not in session or "flight_data" not in session:
         return redirect(url_for("homepage"))
 
@@ -317,7 +372,7 @@ def finalize_flight():
     - Assign attendants and pilots to the flight
     - Validate required crew count
     """
-
+    update_flight_status()
     if (
         "manager" not in session or
         "created_flight_id" not in session or
@@ -396,6 +451,7 @@ def finalize_flight():
 
 @app.route("/cancel-flight", methods=["GET", "POST"])
 def cancel_flight_route():
+    update_flight_status()
     if "manager" not in session:
         return redirect(url_for("homepage"))
 
@@ -423,6 +479,7 @@ def cancel_flight_route():
 
 @app.route("/flights-board", methods=["GET", "POST"])
 def flights_board():
+    update_flight_status()
     if "manager" not in session:
         return redirect(url_for("homepage"))
 
@@ -486,6 +543,7 @@ def flights_board():
 # ======================================================
 @app.route("/logout")
 def logout():
+    update_flight_status()
     session.pop("manager", None)
     session.pop("manager_id", None)
     session.pop("manager_name", None)
@@ -496,7 +554,7 @@ def logout():
 
 @app.route("/")
 def homepage():
-
+    update_flight_status()
     # --- Get min and max dates for the date input ---
     now = datetime.now()
     min_date = now.date()
@@ -535,6 +593,7 @@ def homepage():
 
 @app.route("/contact-us", methods=["GET", "POST"])
 def contact_us():
+    update_flight_status()
     message_sent = False
     if request.method == "POST":
         title = request.form.get("title")
@@ -550,6 +609,7 @@ def contact_us():
 
 @app.route("/search-flights", methods=["POST"])
 def search_flights():
+    update_flight_status()
     # 🚫 Manager cannot book flights
     if session.get("manager"):
         return render_template("manager_cannot_book.html")
@@ -626,6 +686,7 @@ def search_flights():
 
 @app.route("/book-flight", methods=["POST"])
 def book_flight():
+    update_flight_status()
     # Get flight_id and passengers from form
     flight_id = request.form.get("flight_id")
     passengers = request.form.get("passengers")
@@ -692,6 +753,7 @@ def book_flight():
 
 @app.route("/flight-login", methods=["GET"])
 def flight_login():
+    update_flight_status()
     # Disconnect previous login only for flight flow
     if session.get("logged_in"):
         session.pop("logged_in", None)
@@ -705,6 +767,7 @@ def flight_login():
 #coniniue as a guest
 @app.route("/guest", methods=["POST"])
 def continue_as_guest():
+    update_flight_status()
     # Explicitly mark user as not logged in
     session["logged_in"] = False
     session.pop("user", None)
@@ -719,7 +782,7 @@ def continue_as_guest():
 
 @app.route("/flight-customer-login", methods=["GET", "POST"])
 def flight_customer_login():
-
+    update_flight_status()
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
@@ -771,7 +834,7 @@ def customer_login():
     Login route for users coming from homepage.
     Always shows the nice login form and redirects back to homepage after login.
     """
-
+    update_flight_status()
     # Disconnect temporary login for this flow
     session.pop("logged_in", None)
     session.pop("user", None)
@@ -830,6 +893,7 @@ def customer_login():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    update_flight_status()
     print("Register started")
 
     if request.method == "POST":
@@ -959,6 +1023,7 @@ def register():
 
 @app.route("/customer-details", methods=["GET", "POST"])
 def customer_details():
+    update_flight_status()
     booking = session.get("booking")
 
     if request.method == "POST":
@@ -1028,6 +1093,7 @@ def customer_details():
 
 @app.route("/select-seat", methods=["GET", "POST"])
 def select_seat():
+    update_flight_status()
     passengers_count = int(session['booking']['passengers_count'])
     flight_id = session['booking']['flight_id']
     flight = Flight.get_by_id(flight_id)
@@ -1145,6 +1211,7 @@ def select_seat():
 
 @app.route("/summary")
 def summary():
+    update_flight_status()
     booking = session.get("booking", {})
 
     # Convert counts and prices safely
@@ -1170,6 +1237,7 @@ def summary():
 
 @app.route("/payment", methods=["GET", "POST"])
 def payment():
+    update_flight_status()
     if "booking" not in session:
         return redirect(url_for("home"))
 
@@ -1242,7 +1310,7 @@ def confirmation():
     This route displays the final confirmation page after a successful order.
     It should only be accessible after completing the payment process.
     """
-
+    update_flight_status()
     # Get the last order_id from session
     order_id = session.pop("order_id", None)
 
@@ -1264,6 +1332,7 @@ def confirmation():
 
 @app.route("/customer-logout")
 def customer_logout():
+        update_flight_status()
         session.pop("user", None)  # מוחק את פרטי המשתמש
         session["logged_in"] = False  # או session.pop("logged_in", None)
         session.pop("booking", None)
@@ -1278,6 +1347,7 @@ def guest_booking_lookup():
     Guest booking lookup by email + booking code.
     Only allow bookings for flights that have not departed yet.
     """
+    update_flight_status()
     # Initialize empty values for the form
     email = ""
     booking_code = ""
@@ -1346,6 +1416,7 @@ def booking_summary(booking_id):
     """
     Show booking summary with customer info, seats, and cancellation eligibility.
     """
+    update_flight_status()
     booking = Order.get_by_id(booking_id)
     if not booking:
         flash("לא נמצאה הזמנה זו.", "error")
@@ -1375,6 +1446,7 @@ def booking_summary(booking_id):
 
 @app.route("/cancel-booking/<int:order_id>", methods=["GET", "POST"])
 def cancel_booking(order_id):
+    update_flight_status()
     booking = Order.get_by_id(order_id)
     if not booking:
         flash("לא נמצאה הזמנה זו.", "error")
@@ -1412,6 +1484,7 @@ def cancel_booking(order_id):
 
 @app.route("/cancel-success/<int:order_id>")
 def cancel_success(order_id):
+    update_flight_status()
     # Fetch order to show info if needed
     booking = Order.get_by_id(order_id)
 
@@ -1423,6 +1496,7 @@ def cancel_success(order_id):
 
 @app.route("/my-bookings")
 def my_bookings():
+    update_flight_status()
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
@@ -1460,5 +1534,9 @@ def my_bookings():
         selected_status=selected_status
     )
 
+
+
+
 if __name__ == "__main__":
+    update_flight_status()
     app.run(debug=True)
