@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <title>לוח טיסות</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+{% extends "base.html" %}
 
+{% block title %}לוח טיסות{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+{% block content %}
 <body class="dashboard-page">
   <div class="page">
     <div class="card">
@@ -95,4 +95,4 @@
     </div>
   </div>
 </body>
-</html>
+{% endblock %}

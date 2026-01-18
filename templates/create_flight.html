@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang="he">
-<head>
-  <meta charset="UTF-8">
-  <title>יצירת טיסה חדשה</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+{% extends "base.html" %}
+
+{% block title %}יצירת טיסה{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+{% block content %}
 
 <body>
   <div class="page">
@@ -60,7 +61,7 @@
 
         </div>
 
-        <div class="actions">
+        <div class="actions-flight">
           <button type="submit" class="btn btn-primary">
             המשך לבחירת מטוס
           </button>
@@ -70,4 +71,4 @@
     </div>
   </div>
 </body>
-</html>
+{% endblock %}

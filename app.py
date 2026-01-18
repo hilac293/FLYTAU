@@ -54,7 +54,7 @@ def login():
         cursor = conn.cursor(dictionary=True)
 
         cursor.execute("""
-            SELECT manager_id
+            SELECT manager_id, first_name
             FROM Managers
             WHERE manager_id = %s AND password = %s
         """, (manager_id, password))
@@ -64,7 +64,9 @@ def login():
         conn.close()
 
         if manager:
+            session["manager"] = True
             session["manager"] = manager_id
+            session["manager_name"] = manager["first_name"]
             return redirect("/dashboard")
 
     return render_template("login.html")
@@ -80,7 +82,7 @@ def dashboard():
     """
 
     if "manager" not in session:
-        return redirect("/")
+        return redirect(url_for("homepage"))
 
     return render_template("dashboard.html")
 
@@ -94,7 +96,7 @@ def create_flight():
     """
 
     if "manager" not in session:
-        return redirect("/")
+        return redirect(url_for("homepage"))
 
     if request.method == "POST":
         data = request.form
@@ -221,7 +223,7 @@ def select_crew():
     """
 
     if "manager" not in session or "flight_data" not in session:
-        return redirect("/")
+        return redirect(url_for("homepage"))
 
     plane_id = request.form.get("plane_id")
     if not plane_id:
@@ -321,7 +323,7 @@ def finalize_flight():
         "created_flight_id" not in session or
         "departure_datetime" not in session
     ):
-        return redirect("/")
+        return redirect(url_for("homepage"))
 
     flight_id = int(session["created_flight_id"])
     departure_datetime = datetime.fromisoformat(session["departure_datetime"])
@@ -395,7 +397,7 @@ def finalize_flight():
 @app.route("/cancel-flight", methods=["GET", "POST"])
 def cancel_flight_route():
     if "manager" not in session:
-        return redirect("/")
+        return redirect(url_for("homepage"))
 
     flights = Flight.get_all()
 
@@ -422,7 +424,7 @@ def cancel_flight_route():
 @app.route("/flights-board", methods=["GET", "POST"])
 def flights_board():
     if "manager" not in session:
-        return redirect("/")
+        return redirect(url_for("homepage"))
 
     # --- בסיס השאילתה ---
     query = """
@@ -484,12 +486,17 @@ def flights_board():
 # ======================================================
 @app.route("/logout")
 def logout():
+    session.pop("manager", None)
+    session.pop("manager_id", None)
+    session.pop("manager_name", None)
+    session.modified = True
     session.clear()
     return redirect(url_for("login"))  # מחזיר למסך התחברות מנהלים
 
 
 @app.route("/")
 def homepage():
+
     # --- Get min and max dates for the date input ---
     now = datetime.now()
     min_date = now.date()
@@ -517,7 +524,7 @@ def homepage():
         destinations=destinations,
         min_date=min_date.strftime("%Y-%m-%d"),
         max_date=max_date.strftime("%Y-%m-%d"),
-        prev_source=None,        # ניתן למלא אם רוצים לשמור בחירה מהפוסט הקודם
+        prev_source=None,
         prev_destination=None,
         prev_departure=None,
         prev_passengers=1
@@ -543,26 +550,23 @@ def contact_us():
 
 @app.route("/search-flights", methods=["POST"])
 def search_flights():
+    # 🚫 Manager cannot book flights
+    if session.get("manager"):
+        return render_template("manager_cannot_book.html")
     origin = request.form.get("source")
     destination = request.form.get("destination")
     departure_date = request.form.get("departure")
     passengers = int(request.form.get("passengers", 1))
     if origin == destination:
-        error_message = "אופס, נראה שהמקור והיעד שבחרתם זהים"
-        return render_template(
-                "homepage.html",
-        min_date=(datetime.now().date()).strftime('%Y-%m-%d'),
-        max_date=(datetime.now().date() + timedelta(days=365)).strftime('%Y-%m-%d'),
-        error_message=error_message,
-        prev_source=origin,
-        prev_destination=destination,
-        prev_departure=departure_date,
-        prev_passengers=passengers)
+        flash("אופס, נראה שהמקור והיעד בחרתם זהים", category="error")
+        return redirect(url_for("homepage"))
+
+
 
     conn = get_connection("FLYTAU")
     cursor = conn.cursor(dictionary=True)
 
-    # --- קבלת טיסות לפי מקור, יעד ותאריך ---
+   #choose flies by destination, origin, date
     cursor.execute("""
         SELECT f.flight_id, f.departure_datetime, f.origin, f.destination,
                f.regular_price, f.business_price, f.plane_id
@@ -577,7 +581,7 @@ def search_flights():
     results = []
 
     for flight in flights:
-        # --- בדיקה כמה מושבים פנויים ---
+        # check how much free seats
         cursor.execute("""
             SELECT SUM(pc.rows_number * pc.columns_number) AS total_seats
             FROM plane_class pc

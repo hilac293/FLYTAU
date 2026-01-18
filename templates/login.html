@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang="he">
-<head>
-  <meta charset="UTF-8">
-  <title>כניסת מנהלים</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+{% extends "base.html" %}
+
+{% block title %}כניסת מנהל{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+{% block content %}
 
 <body class="login-page">
   <div class="page">
@@ -36,4 +37,4 @@
     </div>
   </div>
 </body>
-</html>
+{% endblock %}

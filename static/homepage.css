@@ -172,3 +172,38 @@ header.header .link:hover {
         max-width: 300px;
     }
 }
+
+
+
+.flash-container {
+    width: 100%;
+    max-width: 650px;
+    margin: 15px auto;
+}
+
+.flash-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    animation: slideDown 0.3s ease;
+}
+
+/* Warning style */
+.flash-message.error {
+    background: linear-gradient(90deg, #fff3cd, #ffe8a1);
+    color: #7a5d00;
+    border: 1px solid #ffcc00;
+}
+
+.flash-icon {
+    font-size: 22px;
+}
+
+.flash-text {
+    flex: 1;
+    text-align: right;
+}

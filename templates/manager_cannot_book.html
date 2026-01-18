@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}גישה מוגבלת{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='manager_cannot_book.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="manager-block-container">
+
+    <img src="{{ url_for('static', filename='imgs/manager_warning.png') }}"
+         alt="Manager Warning"
+         class="manager-image">
+
+    <h1>גישה מוגבלת למנהלים</h1>
+
+    <p>
+        לא ניתן לבצע הזמנת טיסה מחשבון מנהל.
+        <br>
+        על מנת לבצע הזמנה, יש להתנתק מחשבון המנהל ולהיכנס כלקוח.
+    </p>
+
+    <div class="buttons">
+        <a href="{{ url_for('logout') }}" class="btn logout-btn">התנתקות</a>
+        <a href="{{ url_for('homepage') }}" class="btn home-btn">חזרה לדף הבית</a>
+    </div>
+
+</div>
+{% endblock %}

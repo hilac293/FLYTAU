@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Select Plane</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+{% extends "base.html" %}
+
+{% block title %}בחירת מטוס{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+{% block content %}
 
 <body>
   <div class="page">
@@ -66,7 +67,7 @@
           </table>
         </div>
 
-        <div class="actions">
+        <div class="actions_plane">
           <button class="btn btn-primary" type="submit">Continue →</button>
           <a class="btn btn-ghost" href="/create-flight" style="text-decoration:none; display:inline-grid; place-items:center;">
             Back
@@ -79,4 +80,4 @@
     </div>
   </div>
 </body>
-</html>
+{% endblock %}

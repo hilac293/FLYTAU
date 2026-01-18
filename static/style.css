@@ -16,7 +16,7 @@ body{
   background: linear-gradient(120deg, var(--bg1), var(--bg2));
   direction: rtl;
   margin:0;
-  min-height:100vh;
+  /*min-height:100vh;*/
   color:var(--text);
 }
 
@@ -53,6 +53,7 @@ body{
   grid-template-columns: 1fr 1fr;
   gap: 14px 35px;
   margin-top: 16px;
+  margin-left: 15px;
 }
 
 .field label{
@@ -81,11 +82,39 @@ body{
 
 .actions{
   margin-top: 18px;
+    /*display:flex;*/
+  gap: 12px;
+  justify-content: center;
+}
+
+.actions-flight{
+  margin-top: 18px;
   display:flex;
   gap: 12px;
   justify-content: center;
 }
 
+.actions_plane{
+   margin-top: 18px;
+  display:flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.actions_crew{
+   margin-top: 18px;
+  display:flex;
+  gap: 12px;
+  justify-content: center;
+
+.actions_success{
+     margin-top: 18px;
+  display:flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+}
 .btn{
   appearance:none;
   border:none;
@@ -94,8 +123,10 @@ body{
   border-radius: 12px;
   font-weight:800;
   font-size: 15px;
-  width: min(320px, 100%);
+  /*width: min(320px, 100%);*/
   transition: .15s;
+  margin: 10px 5px;
+  /*align-self: center;*/
 }
 
 .btn-primary{
@@ -243,15 +274,15 @@ tr:hover td{
 /* Perfect vertical & horizontal centering */
 body.login-page,
 body.dashboard-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  /*display: flex;*/
+  /*justify-content: center;*/
+  /*align-items: center;*/
 }
 
 /* Ensure page wrapper does not push content down */
 body.login-page .page,
 body.dashboard-page .page {
-  margin: 0;
+  /*margin: 0;*/
   width: 100%;
   display: flex;
   justify-content: center;
@@ -289,3 +320,14 @@ body.dashboard-page .btn {
   width: 100%;
 }
 
+body.login-page .btn {
+  font-size: 17px;
+  padding: 14px 16px;
+  width: 100%;
+}
+
+body.login-page .btn {
+  font-size: 17px;
+  padding: 14px 16px;
+  width: 100%;
+}

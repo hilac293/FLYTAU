@@ -1,0 +1,123 @@
+:root {
+    --blue: #0b66d6;
+    --blue2: #2ea3ff;
+    --text: #0b1b33;
+    --muted: #5a6b85;
+    --bg1: #e6f0ff;
+    --bg2: #f8fbff;
+    --card: #ffffff;
+    --border: #d7e0ee;
+    --shadow: 0 12px 30px rgba(12, 44, 90, 0.12);
+    --radius: 14px;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-image: url("/static/imgs/background.png");
+    background-size: cover;
+    background-position: center;
+    direction: rtl;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
+}
+
+/* Container card */
+.contact-page .container {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 40px 30px;
+    max-width: 600px;
+    width: 100%;
+}
+
+/* Titles */
+.contact-page h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #08315f;
+    text-align: center;
+}
+
+.contact-page p {
+    margin: 0 0 25px;
+    color: var(--muted);
+    text-align: center;
+}
+
+/* Form fields aligned inside card */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18px;
+}
+
+.form-field label {
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: #193456;
+    font-size: 14px;
+}
+
+.form-field input,
+.form-field textarea {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
+    background: #fbfdff;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+    border-color: rgba(11,102,214,.55);
+    box-shadow: 0 0 0 4px rgba(11,102,214,.12);
+}
+
+.char-limit {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+/* Submit button */
+.submit-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.btn-submit {
+    background: linear-gradient(90deg, var(--blue), var(--blue2));
+    color: #fff;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+    width: min(220px, 100%);
+}
+
+.btn-submit:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
+}
+
+/* Success message */
+.success {
+    margin-top: 12px;
+    color: green;
+    font-weight: bold;
+    text-align: center;
+}
+

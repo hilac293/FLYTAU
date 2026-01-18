@@ -15,6 +15,19 @@
     <div class="airplane-image">
         <img src="{{ url_for('static', filename='imgs/airplane-homepage.png') }}" alt="Airplane" />
     </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">
+            <span class="flash-icon">⚠️</span>
+            <span class="flash-text">{{ message }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
     <!-- Flight search card -->
       <div class="card">
         <form method="POST" action="{{ url_for('search_flights') }}" class="form-horizontal">

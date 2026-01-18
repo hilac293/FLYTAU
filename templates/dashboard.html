@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="he">
-<head>
-  <meta charset="UTF-8">
-  <title>תפריט מנהל</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+{% extends "base.html" %}
 
+{% block title %}תפריט מנהל{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+{% block content %}
 <body class="dashboard-page">
   <div class="page">
     <div class="card">
@@ -42,4 +42,4 @@
     </div>
   </div>
 </body>
-</html>
+{% endblock %}
