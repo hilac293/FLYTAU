@@ -16,6 +16,13 @@
         <p>אנא הזן תעודת זהות וסיסמה</p>
       </div>
 
+      {% if error %}
+      <div class="notice error">
+        {{ error }}
+      </div>
+      {% endif %}
+
+
       <form method="POST">
         <div class="field">
           <label>תעודת זהות</label>

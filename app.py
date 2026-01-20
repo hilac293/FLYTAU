@@ -20,6 +20,12 @@ from func_for_flights import (
     get_available_pilots,
     get_required_crew_by_duration
 )
+from charts_managers_dashboard import (
+    report_avg_capacity,
+    report_revenue,
+    report_employee_hours
+)
+
 
 app = Flask(__name__)
 app.secret_key = "secret123"
@@ -52,7 +58,7 @@ def update_flight_status():
 
         # בדיקה אם הטיסה כבר קרתה
         if departure < datetime.now():
-            new_status = 'Accured'
+            new_status = 'Occured'
         else:
             # בדיקה אם הטיסה מלאה
             cursor.execute("""
@@ -120,9 +126,11 @@ def login():
 
         if manager:
             session["manager"] = True
-            session["manager"] = manager_id
             session["manager_name"] = manager["first_name"]
             return redirect("/dashboard")
+        else:
+            # raise error
+            return render_template("login.html", error="תעודת זהות או סיסמה שגויים")
 
     return render_template("login.html")
 
@@ -150,21 +158,23 @@ def create_flight():
     Step 1: Collect flight details.
     """
     update_flight_status()
+
     if "manager" not in session:
         return redirect(url_for("homepage"))
 
+    # =========================
+    # POST – submit flight form
+    # =========================
     if request.method == "POST":
         data = request.form
 
+        # ---- Validate prices ----
         try:
             regular_price = float(data["regular_price"])
             business_price = float(data["business_price"])
 
             if regular_price <= 0 or business_price <= 0:
-                return render_template(
-                    "create_flight.html",
-                    error="Prices must be positive numbers"
-                )
+                raise ValueError
 
             if business_price <= regular_price:
                 return render_template(
@@ -178,12 +188,12 @@ def create_flight():
                 error="Invalid price values"
             )
 
+        # ---- Parse datetime ----
         departure_datetime = datetime.strptime(
             f"{data['date']} {data['time']}",
             "%Y-%m-%d %H:%M"
         )
 
-        # 🔹 Block choosing past dates
         today = datetime.now().date()
         if departure_datetime.date() < today:
             return render_template(
@@ -192,9 +202,11 @@ def create_flight():
                 current_date=today.isoformat()
             )
 
+        # ---- Origin & Destination (from dropdowns) ----
         origin = data["origin"]
         destination = data["destination"]
 
+        # ---- Validate route exists ----
         conn = get_connection("FLYTAU")
         cursor = conn.cursor(dictionary=True)
 
@@ -203,6 +215,7 @@ def create_flight():
             FROM route
             WHERE origin = %s AND destination = %s
         """, (origin, destination))
+
         row = cursor.fetchone()
 
         cursor.close()
@@ -215,11 +228,12 @@ def create_flight():
                 current_date=today.isoformat()
             )
 
+        # ---- Calculate duration ----
         duration_hours = row["minutes"] / 60.0
         is_long_flight = duration_hours > 6
 
+        # ---- Check available planes ----
         planes = get_available_planes(origin, destination, departure_datetime)
-
         if not planes:
             return render_template(
                 "create_flight.html",
@@ -227,6 +241,7 @@ def create_flight():
                 current_date=today.isoformat()
             )
 
+        # ---- Required crew ----
         required_attendants, required_pilots = get_required_crew_by_duration(duration_hours)
 
         attendants = get_available_attendants(
@@ -246,10 +261,11 @@ def create_flight():
         if len(attendants) < required_attendants or len(pilots) < required_pilots:
             return render_template(
                 "create_flight.html",
-                error="לא ניתן ליצור טיסה זו בגלל חוסר במטוסים או אנשי צוות מתאימים.",
+                error="לא ניתן ליצור טיסה זו בגלל חוסר באנשי צוות מתאימים.",
                 current_date=today.isoformat()
             )
 
+        # ---- Save data for next steps ----
         session["flight_data"] = dict(data)
         session["departure_datetime"] = departure_datetime.isoformat()
 
@@ -261,8 +277,28 @@ def create_flight():
             plane_columns=plane_columns
         )
 
-    return render_template("create_flight.html", current_date=datetime.now().date().isoformat())
+    # =========================
+    # GET – show form
+    # =========================
+    conn = get_connection("FLYTAU")
+    cursor = conn.cursor()
 
+    cursor.execute("SELECT DISTINCT origin FROM route ORDER BY origin")
+    origins = [row[0] for row in cursor.fetchall()]
+
+    cursor.execute("SELECT DISTINCT destination FROM route ORDER BY destination")
+    destinations = [row[0] for row in cursor.fetchall()]
+
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        "create_flight.html",
+        current_date=datetime.now().date().isoformat(),
+        origins=origins,
+        destinations=destinations
+    )
+    י
 
 
 # ======================================================
@@ -477,6 +513,23 @@ def cancel_flight_route():
 
     return render_template("cancel_flight.html", flights=flights)
 
+
+@app.route("/reports-dashboard")
+def reports_dashboard():
+    if "manager" not in session:
+        return redirect(url_for("homepage"))
+
+    avg_capacity = report_avg_capacity()
+    report_revenue()
+    employee_hours = report_employee_hours()
+
+    return render_template(
+        "reports_dashboard.html",
+        avg_capacity=avg_capacity,
+        employee_hours=employee_hours
+    )
+
+
 @app.route("/flights-board", methods=["GET", "POST"])
 def flights_board():
     update_flight_status()
@@ -526,7 +579,7 @@ def flights_board():
     statuses = [
         ("Scheduled", "פעילה"),
         ("Fully_Booked", "תפוסה מלאה"),
-        ("Accrued", "התקיימה"),
+        ("Occrued", "התקיימה"),
         ("Cancelled", "בוטלה")
     ]
 
@@ -544,12 +597,9 @@ def flights_board():
 @app.route("/logout")
 def logout():
     update_flight_status()
-    session.pop("manager", None)
-    session.pop("manager_id", None)
-    session.pop("manager_name", None)
-    session.modified = True
     session.clear()
-    return redirect(url_for("login"))  # מחזיר למסך התחברות מנהלים
+    return redirect(url_for("login"))
+  # מחזיר למסך התחברות מנהלים
 
 
 @app.route("/")

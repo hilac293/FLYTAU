@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}דוחות וסטטיסטיקות{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='reports_dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard">
+
+  <!-- ===== דוח 1: ממוצע תפוסת טיסות ===== -->
+  <div class="card">
+    <h2>ממוצע תפוסת טיסות</h2>
+    <p class="big-number">{{ avg_capacity }}%</p>
+    <img
+      src="{{ url_for('static', filename='reports/avg_capacity.png') }}"
+      alt="Average Flight Capacity"
+    >
+  </div>
+
+  <!-- ===== דוח 2: הכנסות ===== -->
+  <div class="card">
+    <h2>הכנסות לפי מחלקה</h2>
+    <img
+      src="{{ url_for('static', filename='reports/revenue.png') }}"
+      alt="Revenue Chart"
+    >
+  </div>
+
+  <!-- ===== דוח 3: שעות עובדים ===== -->
+  <div class="card wide">
+    <h2>שעות טיסה לעובדים</h2>
+
+    <table class="styled-table">
+      <thead>
+        <tr>
+          <th>שם עובד</th>
+          <th>סוג טיסה</th>
+          <th>סה״כ שעות</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in employee_hours %}
+        <tr>
+          <td>{{ row.employee_name }}</td>
+          <td>{{ row.length_flight }}</td>
+          <td>{{ row.total_hours }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{% endblock %}
