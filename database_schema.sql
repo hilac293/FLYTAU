@@ -47,7 +47,7 @@ CREATE TABLE Flights (
     departure_datetime DATETIME NOT NULL,
     origin VARCHAR(50) NOT NULL,
     destination VARCHAR(50) NOT NULL,
-    flight_status ENUM('Scheduled','Fully_Booked','Accured','Cancelled') NOT NULL,
+    flight_status ENUM('Scheduled','Fully_Booked','Occurred','Cancelled') NOT NULL,
     regular_price DECIMAL(10,2) NOT NULL,
     business_price DECIMAL(10,2) NOT NULL,
     plane_id INT NOT NULL,

@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
+import os
 from utils import get_connection
 
 def report_avg_capacity():
-    import matplotlib.pyplot as plt
+
     import os
+    import matplotlib.pyplot as plt
     from utils import get_connection
 
     os.makedirs("static/reports", exist_ok=True)
@@ -28,7 +30,7 @@ def report_avg_capacity():
                 FROM Seats
                 GROUP BY plane_id
             ) s ON f.plane_id = s.plane_id
-            WHERE f.flight_status = 'Occrued'
+            WHERE f.flight_status = 'Occurred'
             GROUP BY f.flight_id, s.total_seats
         ) t
     """)
@@ -37,16 +39,17 @@ def report_avg_capacity():
     cursor.close()
     conn.close()
 
-    # ===== עיצוב הגרף =====
+    # ===== גרף פאי (רק שינוי צבע החתך) =====
     plt.figure(figsize=(4, 4))
     plt.pie(
         [avg_capacity, 100 - avg_capacity],
         labels=["Occupied", "Free"],
         autopct="%1.0f%%",
         startangle=90,
-        colors=["#0D47A1", "#ECEFF1"],
+        colors=["#4169E1", "#E0E0E0"],  # Royal Blue במקום ירוק
         wedgeprops={"edgecolor": "white"}
     )
+
     plt.tight_layout()
     plt.savefig("static/reports/avg_capacity.png", dpi=150)
     plt.close()
@@ -117,8 +120,9 @@ def report_revenue():
 
     return rows
 
-
 def report_employee_hours():
+    from utils import get_connection
+
     conn = get_connection("FLYTAU")
     cursor = conn.cursor(dictionary=True)
 
@@ -134,7 +138,7 @@ def report_employee_hours():
             JOIN route r ON f.origin = r.origin AND f.destination = r.destination
             JOIN PilotsFlights pf ON f.flight_id = pf.flight_id
             JOIN Pilots p ON pf.pilot_id = p.pilot_id
-            WHERE f.flight_status = 'Occrued'
+            WHERE f.flight_status = 'Occurred'
 
             UNION ALL
 
@@ -146,13 +150,13 @@ def report_employee_hours():
             JOIN route r ON f.origin = r.origin AND f.destination = r.destination
             JOIN FlightAttendantsFlights faf ON f.flight_id = faf.flight_id
             JOIN FlightAttendants fa ON faf.attendant_id = fa.attendant_id
-            WHERE f.flight_status = 'Occrued'
+            WHERE f.flight_status = 'Occurred'
         ) t
         GROUP BY employee_type, employee_name, length_flight
+        ORDER BY employee_name
     """)
 
     rows = cursor.fetchall()
-
     cursor.close()
     conn.close()
 

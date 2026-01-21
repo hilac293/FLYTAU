@@ -24,13 +24,23 @@
 
           <div class="field">
             <label>מוצא</label>
-            <input type="text" name="origin" placeholder="לדוגמה: TLV">
+            <select name="origin">
+              <option value="">הכל</option>
+              {% for city in origins %}
+                <option value="{{ city }}">{{ city }}</option>
+              {% endfor %}
+            </select>
           </div>
 
-          <div class="field">
-            <label>יעד</label>
-            <input type="text" name="destination" placeholder="לדוגמה: JFK">
-          </div>
+        <div class="field">
+          <label>יעד</label>
+          <select name="destination">
+            <option value="">הכל</option>
+            {% for city in destinations %}
+              <option value="{{ city }}">{{ city }}</option>
+            {% endfor %}
+          </select>
+        </div>
 
           <div class="field">
             <label>סטטוס טיסה</label>
@@ -75,7 +85,7 @@
                   <span style="color:green;font-weight:bold;">פעילה</span>
                 {% elif f.flight_status == "Fully_Booked" %}
                   <span style="color:orange;font-weight:bold;">תפוסה מלאה</span>
-                {% elif f.flight_status == "Accrued" %}
+                {% elif f.flight_status == "Occurred" %}
                   <span style="color:gray;font-weight:bold;">התקיימה</span>
                 {% elif f.flight_status == "Cancelled" %}
                   <span style="color:red;font-weight:bold;">בוטלה</span>
