@@ -65,7 +65,7 @@ def _get_resource_flights(cursor, plane_id=None, pilot_id=None, attendant_id=Non
                    f.destination
             FROM Flights f
             WHERE f.plane_id = %s
-              AND f.flight_status = 'Scheduled'
+              AND f.flight_status IN ('Scheduled','Occurred')
             ORDER BY f.departure_datetime
         """, (plane_id,))
     elif pilot_id is not None:
@@ -77,7 +77,7 @@ def _get_resource_flights(cursor, plane_id=None, pilot_id=None, attendant_id=Non
             FROM Flights f
             JOIN PilotsFlights pf ON pf.flight_id = f.flight_id
             WHERE pf.pilot_id = %s
-              AND f.flight_status = 'Scheduled'
+              AND f.flight_status IN ('Scheduled','Occurred')
             ORDER BY f.departure_datetime
         """, (pilot_id,))
     elif attendant_id is not None:
@@ -89,7 +89,7 @@ def _get_resource_flights(cursor, plane_id=None, pilot_id=None, attendant_id=Non
             FROM Flights f
             JOIN FlightAttendantsFlights faf ON faf.flight_id = f.flight_id
             WHERE faf.attendant_id = %s
-              AND f.flight_status = 'Scheduled'
+              AND f.flight_status IN ('Scheduled','Occurred')
             ORDER BY f.departure_datetime
         """, (attendant_id,))
     else:
@@ -254,7 +254,7 @@ def get_available_planes(origin, destination, departure_datetime):
             continue
 
         # Find last flight before the new flight, if any
-        before = [fl for fl in flights if fl["arrival"] <= departure_datetime]
+        before = [fl for fl in flights if fl["arrival"] < departure_datetime]
         last_flight = max(before, key=lambda x: x["arrival"]) if before else None
 
         if last_flight:
@@ -278,6 +278,7 @@ def get_available_planes(origin, destination, departure_datetime):
         available.append({
             "plane_id": plane_id,
             "producer": p["producer"],
+            "size": p["size"],
             "total_seats": total_seats,
             "is_long_flight": is_long_flight,
             "last_origin": last_origin,
@@ -370,14 +371,14 @@ def get_available_attendants(flight_datetime, origin=None, destination=None, is_
             continue
 
         # Last flight before the new one (for display)
-        before = [fl for fl in flights if fl["arrival"] <= flight_datetime]
+        before = [fl for fl in flights if fl["arrival"] < flight_datetime]
         last_flight = max(before, key=lambda x: x["arrival"]) if before else None
 
         if last_flight:
-            last_departure = last_flight["departure"]
+            last_arrival = last_flight["arrival"]
             last_destination = last_flight["destination"]
         else:
-            last_departure = None
+            last_arrival = None
             last_destination = BASE_AIRPORT
 
         available.append({
@@ -385,7 +386,7 @@ def get_available_attendants(flight_datetime, origin=None, destination=None, is_
             "full_name": f"{a['first_name']} {a['last_name']}",
             "training_type": a["training_type"],
             "start_date": a["start_date"],
-            "last_departure": last_departure,
+            "last_arrival": last_arrival,
             "last_destination": last_destination
         })
 
@@ -460,15 +461,17 @@ def get_available_pilots(flight_datetime, origin=None, destination=None, is_long
         if not _can_insert_flight_for_resource(cursor, flights, flight_datetime, origin, destination):
             continue
 
-        before = [fl for fl in flights if fl["arrival"] <= flight_datetime]
+        before = [fl for fl in flights if fl["arrival"] < flight_datetime]
         last_flight = max(before, key=lambda x: x["arrival"]) if before else None
 
         if last_flight:
             last_origin = last_flight["origin"]
             last_destination = last_flight["destination"]
+            last_arrival = last_flight["arrival"]  # הוסף שעת נחיתה
         else:
             last_origin = BASE_AIRPORT
-            last_destination = None
+            last_destination = BASE_AIRPORT
+            last_arrival = None
 
         available.append({
             "pilot_id": pilot_id,
@@ -476,7 +479,8 @@ def get_available_pilots(flight_datetime, origin=None, destination=None, is_long
             "training_type": p_row["training_type"],
             "start_date": p_row["start_date"],
             "last_origin": last_origin,
-            "last_destination": last_destination
+            "last_destination": last_destination,
+            "last_arrival": last_arrival  # הוסף לשם שימוש ב-HTML
         })
 
     cursor.close()

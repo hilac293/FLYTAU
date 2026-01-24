@@ -283,69 +283,69 @@ def select_crew():
     data = session["flight_data"]
     departure_datetime = datetime.fromisoformat(session["departure_datetime"])
 
-    # Create flight object
+    # 1. יצירת אובייקט הטיסה עם הגנה משגיאות float
+    reg_price = data.get("regular_price") or 0
+    bus_price = data.get("business_price") or 0
+
     flight = Flight(
         data["date"],
         data["time"],
         data["origin"],
         data["destination"],
-        float(data["regular_price"]),
-        float(data["business_price"]),
+        float(reg_price),
+        float(bus_price),
         int(plane_id)
     )
-
     flight.send_to_db()
 
+    # 2. פתיחת חיבור יחיד למסד הנתונים לשליפת כל המידע החסר
+    conn = get_connection("FLYTAU")
+    cursor = conn.cursor(dictionary=True)
+
+    # שליפת משך הטיסה מהמסלול
+    cursor.execute("""
+        SELECT minutes FROM route 
+        WHERE origin = %s AND destination = %s
+    """, (data["origin"], data["destination"]))
+    route_row = cursor.fetchone()
+
+    # שליפת גודל המטוס (הוספה חדשה)
+    cursor.execute("SELECT size FROM planes WHERE plane_id = %s", (plane_id,))
+    plane_row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    # 3. בדיקת תקינות נתונים
+    if not route_row:
+        return f"Error: Route {data['origin']} to {data['destination']} not found.", 400
+
+    duration_hours = route_row["minutes"] / 60
+    plane_size = plane_row["size"] if plane_row else "Unknown"
+
+    # 4. שמירה ב-Session להמשך התהליך
     session["created_flight_id"] = flight.flight_id
     session["selected_plane_id"] = int(plane_id)
+    session["selected_plane_size"] = plane_size
 
-    # Calculate flight duration
-    conn = get_connection("FLYTAU")
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT minutes
-        FROM route
-        WHERE origin = %s AND destination = %s
-    """, (data["origin"], data["destination"]))
-
-    row = cursor.fetchone()
-    cursor.close()
-    conn.close()
-
-    duration_hours = row["minutes"] / 60
-
-    # Determine required crew by business rule
+    # 5. חישוב צוות נדרש ושליפת אנשי צוות זמינים
     required_attendants, required_pilots = get_required_crew_by_duration(duration_hours)
 
-    # Fetch available crew members
-    # לחשב משך הטיסה כדי לדעת אם היא ארוכה
-    conn = get_connection("FLYTAU")
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT minutes
-        FROM route
-        WHERE origin = %s AND destination = %s
-    """, (data["origin"], data["destination"]))
-    row = cursor.fetchone()
-    cursor.close()
-    conn.close()
+    # שימוש בפרמטר duration_hours שחושב פעם אחת בלבד
+    is_long = (duration_hours > 6)
 
-    duration_hours = row["minutes"] / 60
-
-    # fetch data
     attendants = get_available_attendants(
         departure_datetime,
         origin=data["origin"],
         destination=data["destination"],
-        is_long_flight=(duration_hours > 6)
+        is_long_flight=is_long
     )
 
     pilots = get_available_pilots(
         departure_datetime,
         origin=data["origin"],
         destination=data["destination"],
-        is_long_flight=(duration_hours > 6)
+        is_long_flight=is_long
     )
 
     return render_template(
@@ -353,7 +353,8 @@ def select_crew():
         attendants=attendants,
         pilots=pilots,
         required_attendants=required_attendants,
-        required_pilots=required_pilots
+        required_pilots=required_pilots,
+        plane_size=plane_size  # מעבירים ל-HTML כדי להציג "Large" או "Small"
     )
 
 
@@ -419,13 +420,19 @@ def finalize_flight():
         )
 
     # Assign crew to flight using flight_id
+    def safe_float(val, default=0.0):
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return default
+
     flight = Flight(
         session["flight_data"]["date"],
         session["flight_data"]["time"],
         session["flight_data"]["origin"],
         session["flight_data"]["destination"],
-        float(session["flight_data"]["regular_price"]),
-        float(session["flight_data"]["business_price"]),
+        safe_float(session["flight_data"].get("regular_price")),
+        safe_float(session["flight_data"].get("business_price")),
         session["selected_plane_id"]
     )
 

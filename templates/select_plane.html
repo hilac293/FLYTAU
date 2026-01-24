@@ -10,15 +10,15 @@
 <body>
   <div class="page">
     <div class="header">
-      <h2>Select Plane for Flight</h2>
-      <p>Select one available aircraft from the list</p>
+      <h2>בחר מטוס לטיסה</h2>
+      <p>בחר מטוס רלוונטי אחד מהרשימה</p>
     </div>
 
     <div class="card">
 
       {% if not planes %}
-        <div class="notice error">❌ No available planes for this flight</div>
-        <a class="link" href="/create-flight">Back to Flight Creation</a>
+        <div class="notice error">❌ אין מטוס רלוונטי לטיסה</div>
+        <a class="link" href="/create-flight">בחזרה ליצירת טיסה</a>
       {% else %}
 
       {% if error %}
@@ -31,14 +31,15 @@
           <table>
             <thead>
               <tr>
-                <th>Select</th>
-                <th>Plane ID</th>
-                <th>Producer</th>
-                <th>Total Seats</th>
-                <th>Long Flight</th>
-                <th>Last Origin</th>
-                <th>Last Destination</th>
-                <th>Last Arrival</th>
+                <th>בחר</th>
+                <th>ID</th>
+                <th>יצרן</th>
+                <th>גודל</th>
+                <th>סה"כ מושבים</th>
+                <th>טיסה ארוכה</th>
+                <th>טיסה אחרונה - מקור</th>
+                <th> טיסה אחרונה -יעד</th>
+                <th>טיסה אחרונה - נחיתה</th>
               </tr>
             </thead>
 
@@ -50,6 +51,7 @@
                 </td>
                 <td>{{ plane['plane_id'] }}</td>
                 <td>{{ plane['producer'] }}</td>
+                <td>{{ plane['size'] }}</td>
                 <td>{{ plane['total_seats'] }}</td>
                 <td>{{ 'Yes' if plane['is_long_flight'] else 'No' }}</td>
                 <td>{{ plane['last_origin'] if plane['last_origin'] else '-' }}</td>

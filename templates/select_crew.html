@@ -5,6 +5,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% endblock %}
+
 {% block content %}
 <body>
   <div class="page">
@@ -19,12 +20,12 @@
 
     <div class="card">
       {% if error %}
-      <div class="notice error">{{ error }}</div>
+        <div class="notice error">{{ error }}</div>
       {% endif %}
 
       <form method="POST" action="/finalize-flight" id="crewForm">
 
-        <!-- ATTENDANTS SECTION -->
+        <!-- ================= ATTENDANTS SECTION ================= -->
         <div class="crew-section">
           <h3 class="section-title">דיילים</h3>
           <div class="small">בחר/י {{ required_attendants }} דיילים</div>
@@ -38,8 +39,8 @@
                   <th>שם</th>
                   <th>הכשרה</th>
                   <th>תחילת עבודה</th>
-                  <th>טיסה אחרונה - המראה</th>
                   <th>טיסה אחרונה - נחיתה</th>
+                  <th>טיסה אחרונה - יעד</th>
                 </tr>
               </thead>
               <tbody>
@@ -52,18 +53,17 @@
                   <td>{{ a.full_name }}</td>
                   <td>{{ a.training_type }}</td>
                   <td>{{ a.start_date }}</td>
-                  <td>{{ a.last_departure if a.last_departure else '-' }}</td>
+                  <td>{{ a.last_arrival if a.last_arrival else '-' }}</td>
                   <td>{{ a.last_destination if a.last_destination else '-' }}</td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
-
           <div class="notice" id="attNote" style="display:none;"></div>
         </div>
 
-        <!-- PILOTS SECTION -->
+        <!-- ================= PILOTS SECTION ================= -->
         <div class="crew-section">
           <h3 class="section-title">טייסים</h3>
           <div class="small">בחר/י {{ required_pilots }} טייסים</div>
@@ -77,7 +77,7 @@
                   <th>שם</th>
                   <th>הכשרה</th>
                   <th>תחילת עבודה</th>
-                  <th>טיסה אחרונה - מוצא</th>
+                  <th>טיסה אחרונה - נחיתה</th>
                   <th>טיסה אחרונה - יעד</th>
                 </tr>
               </thead>
@@ -91,17 +91,17 @@
                   <td>{{ p.full_name }}</td>
                   <td>{{ p.training_type }}</td>
                   <td>{{ p.start_date }}</td>
-                  <td>{{ p.last_origin if p.last_origin else '-' }}</td>
+                  <td>{{ p.last_arrival if p.last_arrival else '-' }}</td>
                   <td>{{ p.last_destination if p.last_destination else '-' }}</td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
-
           <div class="notice" id="pilotNote" style="display:none;"></div>
         </div>
 
+        <!-- ================= ACTIONS ================= -->
         <div class="actions_crew">
           <button class="btn btn-primary" type="submit">סיום יצירת טיסה</button>
           <a class="btn btn-ghost" href="/create-flight" style="text-decoration:none;display:inline-grid;place-items:center;">
