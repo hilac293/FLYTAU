@@ -51,7 +51,19 @@
         <p><span class="label">תאריך נחיתה:</span> {{ booking.arrival_datetime.split(' ')[0] }}</p>
         <p><span class="label">שעת יציאה:</span> {{ booking.departure_datetime.split(' ')[1] }}</p>
         <p><span class="label">שעת נחיתה:</span> {{ booking.arrival_datetime.split(' ')[1] }}</p>
-        <p><span class="label">משך טיסה:</span> {{ booking.duration }} שעות</p>
+        <p>
+            <span class="label">משך טיסה:</span>
+            {% set hours = booking.duration | int %}
+            {% set minutes = ((booking.duration - hours) * 60) | round(0, 'floor') | int %}
+
+            {% if minutes == 0 %}
+                {{ hours }} שעות
+            {% else %}
+                {{ hours }} שעות ו-{{ minutes }} דקות
+            {% endif %}
+        </p>
+
+
     </div>
 
     <!-- Customer Info -->
