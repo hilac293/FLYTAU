@@ -128,7 +128,7 @@ def report_employee_hours():
 
     cursor.execute("""
         SELECT employee_type, employee_name, length_flight,
-               ROUND(SUM(total_m) / 60, 2) AS total_hours
+               ROUND(SUM(total_m) / 60) AS total_hours
         FROM (
             SELECT 'Pilot' AS employee_type,
                    CONCAT(p.first_name, ' ', p.last_name) AS employee_name,

@@ -49,7 +49,7 @@ CREATE TABLE Flights (
     destination VARCHAR(50) NOT NULL,
     flight_status ENUM('Scheduled','Fully_Booked','Occurred','Cancelled') NOT NULL,
     regular_price DECIMAL(10,2) NOT NULL,
-    business_price DECIMAL(10,2) NOT NULL,
+    business_price DECIMAL(10,2) NULL,
     plane_id INT NOT NULL,
     FOREIGN KEY (plane_id) REFERENCES Planes(plane_id),
     FOREIGN KEY (origin, destination) REFERENCES Route(origin, destination),

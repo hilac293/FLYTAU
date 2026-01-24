@@ -12,7 +12,7 @@
 
   <!-- ===== דוח 1: ממוצע תפוסת טיסות ===== -->
   <div class="card">
-    <h2>ממוצע תפוסת טיסות</h2>
+    <h2> ממוצע תפוסת טיסות שהתקיימו</h2>
     <p class="big-number">{{ avg_capacity }}%</p>
     <img
       src="{{ url_for('static', filename='reports/avg_capacity.png') }}"
@@ -22,7 +22,7 @@
 
   <!-- ===== דוח 2: הכנסות ===== -->
   <div class="card">
-    <h2>הכנסות לפי מחלקה</h2>
+    <h2>הכנסות לפי יצרן גודל מטוס ומחלקה</h2>
     <img
       src="{{ url_for('static', filename='reports/revenue.png') }}"
       alt="Revenue Chart"

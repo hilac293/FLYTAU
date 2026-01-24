@@ -151,154 +151,117 @@ def dashboard():
 # ======================================================
 # Create Flight - Step 1 (Flight Details)
 # ======================================================
+def get_route_data():
+    """פונקציית עזר לשליפת היעדים והמקורות מהדאטה-בייס"""
+    conn = get_connection("FLYTAU")
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT origin FROM route ORDER BY origin")
+    origins = [row[0] for row in cursor.fetchall()]
+    cursor.execute("SELECT DISTINCT destination FROM route ORDER BY destination")
+    destinations = [row[0] for row in cursor.fetchall()]
+    cursor.close()
+    conn.close()
+    return origins, destinations
+
+
 @app.route("/create-flight", methods=["GET", "POST"])
 def create_flight():
-    """
-    Step 1: Collect flight details.
-    """
     update_flight_status()
-
     if "manager" not in session:
         return redirect(url_for("homepage"))
 
-    # =========================
-    # POST – submit flight form
-    # =========================
+    # שליפת היעדים מראש כדי שיהיו זמינים גם במקרה של שגיאה
+    origins, destinations = get_route_data()
+    current_date = datetime.now().date().isoformat()
+
     if request.method == "POST":
-        data = request.form
+        data = dict(request.form)
 
-        # ---- Validate prices ----
-        try:
-            regular_price = float(data["regular_price"])
-            business_price = float(data["business_price"])
-
-            if regular_price <= 0 or business_price <= 0:
-                raise ValueError
-
-            if business_price <= regular_price:
-                return render_template(
-                    "create_flight.html",
-                    error="Business price must be higher than regular price",
-                    current_date=datetime.now().date().isoformat()
-                )
-
-        except ValueError:
+        # פונקציה פנימית לקיצור ה-return במקרה של שגיאה
+        def return_error(msg):
             return render_template(
                 "create_flight.html",
-                error="Invalid price values",
-                current_date=datetime.now().date().isoformat()
+                error=msg,
+                origins=origins,  # חשוב! מחזיר את הרשימה
+                destinations=destinations,  # חשוב! מחזיר את הרשימה
+                current_date=current_date
             )
 
-        # ---- Parse datetime ----
-        departure_datetime = datetime.strptime(
-            f"{data['date']} {data['time']}",
-            "%Y-%m-%d %H:%M"
-        )
+        # ---- בדיקת שדות חובה ----
+        required_fields = ['date', 'time', 'origin', 'destination', 'regular_price']
+        if not all(data.get(field) for field in required_fields):
+            return return_error("לא מולאו כל הפרטים הנדרשים ליצירת הטיסה.")
 
-        today = datetime.now().date()
-        if departure_datetime.date() < today:
-            return render_template(
-                "create_flight.html",
-                error="לא ניתן לבחור תאריך שעבר",
-                current_date=today.isoformat()
-            )
-
-        # ---- Origin & Destination (from dropdowns) ----
         origin = data["origin"]
         destination = data["destination"]
 
-        # ---- Validate route exists ----
+        # ---- בדיקת קיום מסלול ----
         conn = get_connection("FLYTAU")
         cursor = conn.cursor(dictionary=True)
-
-        cursor.execute("""
-            SELECT minutes
-            FROM route
-            WHERE origin = %s AND destination = %s
-        """, (origin, destination))
-
+        cursor.execute("SELECT minutes FROM route WHERE origin = %s AND destination = %s", (origin, destination))
         row = cursor.fetchone()
         cursor.close()
         conn.close()
 
         if not row:
-            return render_template(
-                "create_flight.html",
-                error="לא ניתן ליצור טיסה זו כי אין זמן טיסה מוגדר בין היעדים.",
-                current_date=today.isoformat()
-            )
+            return return_error("לא ניתן ליצור טיסה זו כי אין זמן טיסה מוגדר בין היעדים.")
 
-        # ---- Calculate duration ----
         duration_hours = row["minutes"] / 60.0
         is_long_flight = duration_hours > 6
 
-        # ---- Check available planes ----
+        # ---- וולידציית מחירים ----
+        try:
+            regular_price = float(data["regular_price"])
+            if regular_price <= 0: raise ValueError
+
+            if not is_long_flight:
+                data["business_price"] = None
+            else:
+                if not data.get("business_price"):
+                    return return_error("בטיסה ארוכה חובה להזין מחיר למחלקת עסקים.")
+
+                business_price = float(data["business_price"])
+                if business_price <= regular_price:
+                    return return_error("מחיר מחלקת עסקים חייב להיות גבוה מהמחיר הרגיל.")
+
+        except (ValueError, TypeError):
+            return return_error("לא מולאו כל הפרטים הנדרשים או שהוזנו ערכי מחיר לא תקינים.")
+
+        # ---- בדיקת תאריך ושעה ----
+        try:
+            departure_datetime = datetime.strptime(f"{data['date']} {data['time']}", "%Y-%m-%d %H:%M")
+        except ValueError:
+            return return_error("פורמט תאריך או שעה לא תקין.")
+
+        if departure_datetime.date() < datetime.now().date():
+            return return_error("לא ניתן לבחור תאריך שעבר.")
+
+        # ---- בדיקת מטוסים וצוות ----
         planes = get_available_planes(origin, destination, departure_datetime)
         if not planes:
-            return render_template(
-                "create_flight.html",
-                error="לא ניתן ליצור טיסה זו בגלל חוסר במטוסים מתאימים.",
-                current_date=today.isoformat()
-            )
+            return return_error("אין מטוסים פנויים במועד זה.")
 
-        # ---- Required crew ----
         required_attendants, required_pilots = get_required_crew_by_duration(duration_hours)
-
-        attendants = get_available_attendants(
-            departure_datetime,
-            origin=origin,
-            destination=destination,
-            is_long_flight=is_long_flight
-        )
-
-        pilots = get_available_pilots(
-            departure_datetime,
-            origin=origin,
-            destination=destination,
-            is_long_flight=is_long_flight
-        )
+        attendants = get_available_attendants(departure_datetime, origin, destination, is_long_flight)
+        pilots = get_available_pilots(departure_datetime, origin, destination, is_long_flight)
 
         if len(attendants) < required_attendants or len(pilots) < required_pilots:
-            return render_template(
-                "create_flight.html",
-                error="לא ניתן ליצור טיסה זו בגלל חוסר באנשי צוות מתאימים.",
-                current_date=today.isoformat()
-            )
+            return return_error("אין מספיק אנשי צוות פנויים לטיסה זו.")
 
-        # ---- Save data for next steps ----
-        session["flight_data"] = dict(data)
+        # ---- מעבר לשלב הבא ----
+        session["flight_data"] = data
         session["departure_datetime"] = departure_datetime.isoformat()
-
         plane_columns = list(planes[0].keys()) if planes else []
 
-        return render_template(
-            "select_plane.html",
-            planes=planes,
-            plane_columns=plane_columns
-        )
+        return render_template("select_plane.html", planes=planes, plane_columns=plane_columns)
 
-    # =========================
-    # GET – load form data
-    # =========================
-    conn = get_connection("FLYTAU")
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT DISTINCT origin FROM route ORDER BY origin")
-    origins = [row[0] for row in cursor.fetchall()]
-
-    cursor.execute("SELECT DISTINCT destination FROM route ORDER BY destination")
-    destinations = [row[0] for row in cursor.fetchall()]
-
-    cursor.close()
-    conn.close()
-
+    # מקרה של GET (טעינה ראשונה של הדף)
     return render_template(
         "create_flight.html",
         origins=origins,
         destinations=destinations,
-        current_date=datetime.now().date().isoformat()
+        current_date=current_date
     )
-
 # ======================================================
 # Create Flight - Step 2 (Plane Selection)
 # ======================================================
@@ -482,6 +445,7 @@ def finalize_flight():
 
 @app.route("/cancel-flight", methods=["GET", "POST"])
 def cancel_flight_route():
+    update_flight_status()
     if "manager" not in session:
         return redirect(url_for("homepage"))
 
