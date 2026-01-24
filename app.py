@@ -1226,7 +1226,8 @@ def summary():
     # Convert counts and prices safely
     business_seats = int(booking.get("business_seats_count", 0))
     economy_seats = int(booking.get("economy_seats_count", 0))
-    business_price = float(booking.get("business_price", 0))
+    bp = booking.get("business_price")
+    business_price = 0 if bp in (None, "", "-") else float(bp)
     regular_price = float(booking.get("regular_price", 0))
 
     # Calculate total
