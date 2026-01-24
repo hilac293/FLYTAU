@@ -57,59 +57,72 @@ def report_avg_capacity():
     return avg_capacity
 
 def report_revenue():
-    import matplotlib.pyplot as plt
-    import os
-    from utils import get_connection
-
     os.makedirs("static/reports", exist_ok=True)
 
     conn = get_connection("FLYTAU")
     cursor = conn.cursor(dictionary=True)
 
     cursor.execute("""
-        SELECT
-            p.producer AS plane_producer,
-            bs.class_type AS seat_class,
-            SUM(
-                CASE
-                    WHEN bs.class_type = 'Business' THEN f.business_price
-                    WHEN bs.class_type = 'Economy'  THEN f.regular_price
-                END
-            ) AS total_revenue
+        SELECT p.size AS plane_size, p.producer AS plane_producer, bs.class_type AS seat_class,
+            SUM(CASE 
+                WHEN bs.class_type = 'Business' THEN f.business_price 
+                WHEN bs.class_type = 'Economy' THEN f.regular_price 
+            END) AS total_revenue,
+            COUNT(bs.seat_number) AS seats_sold
         FROM Booking_Seats bs
-        JOIN Orders o ON bs.order_id = o.order_id
-        JOIN Flights f ON o.flight_id = f.flight_id
-        JOIN planes p ON f.plane_id = p.plane_id
-        WHERE o.order_status = 'COMPLETED'
-        GROUP BY p.producer, bs.class_type
+        JOIN Orders o
+            ON bs.order_id = o.order_id
+        JOIN Flights f
+            ON o.flight_id = f.flight_id
+        JOIN planes p
+            ON f.plane_id = p.plane_id
+        WHERE
+            o.order_status = 'COMPLETED'
+        GROUP BY
+            p.size,
+            p.producer,
+            bs.class_type
+        ORDER BY
+            total_revenue DESC
     """)
 
     rows = cursor.fetchall()
     cursor.close()
     conn.close()
 
-    producers = sorted(set(r["plane_producer"] for r in rows))
+    categories = sorted(
+        set(f'{r["plane_producer"]} ({r["plane_size"]})' for r in rows)
+    )
+
     business = []
     economy = []
 
-    for p in producers:
+    for c in categories:
+        producer, size = c.split(" (")
+        size = size.replace(")", "")
+
         business.append(
             sum(r["total_revenue"] for r in rows
-                if r["plane_producer"] == p and r["seat_class"] == "Business")
-        )
-        economy.append(
-            sum(r["total_revenue"] for r in rows
-                if r["plane_producer"] == p and r["seat_class"] == "Economy")
+                if r["plane_producer"] == producer
+                and r["plane_size"] == size
+                and r["seat_class"] == "Business")
         )
 
-    x = range(len(producers))
+        economy.append(
+            sum(r["total_revenue"] for r in rows
+                if r["plane_producer"] == producer
+                and r["plane_size"] == size
+                and r["seat_class"] == "Economy")
+        )
+
+    x = range(len(categories))
 
     # ===== עיצוב הגרף =====
     plt.figure(figsize=(6, 4))
     plt.bar(x, business, width=0.4, label="Business", color="#1976D2")
     plt.bar([i + 0.4 for i in x], economy, width=0.4, label="Economy", color="#90CAF9")
 
-    plt.xticks([i + 0.2 for i in x], producers)
+    plt.xticks([i + 0.2 for i in x], categories, rotation=30, ha="right")
     plt.ylabel("Revenue")
     plt.legend(frameon=False)
     plt.grid(axis="y", linestyle="--", alpha=0.4)
@@ -119,6 +132,7 @@ def report_revenue():
     plt.close()
 
     return rows
+
 
 def report_employee_hours():
     from utils import get_connection
