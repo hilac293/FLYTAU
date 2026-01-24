@@ -807,7 +807,7 @@ def flight_customer_login():
             flash("משתמש עם המייל הזה לא נמצא", "error")
             session["login_email"] = email
 
-        elif not check_password_hash(user.password, password):
+        elif not user.password == password:
             flash("סיסמה שגויה", "error")
             session["login_email"] = email
 
@@ -865,7 +865,7 @@ def customer_login():
             session["login_email"] = email
             return redirect(url_for("customer_login"))
 
-        if not check_password_hash(user.password, password):
+        if not user.password == password:
             flash("סיסמה שגויה", "error")
             session["login_email"] = email
             return redirect(url_for("customer_login"))
@@ -982,7 +982,7 @@ def register():
 
         # 5. Hash password+
 
-        hashed_password = generate_password_hash(password)
+        # hashed_password = generate_password_hash(password)
 
         # 6. Create user object and save to DB
         user = Registered(
@@ -991,7 +991,7 @@ def register():
             last_name=last_name,
             email=email,
             birth_date=birth_date,
-            password=hashed_password,
+            password=password,
             phones=phones,
             registration_date=date.today()
         )
