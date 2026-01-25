@@ -182,8 +182,8 @@ def create_flight():
             return render_template(
                 "create_flight.html",
                 error=msg,
-                origins=origins,  # חשוב! מחזיר את הרשימה
-                destinations=destinations,  # חשוב! מחזיר את הרשימה
+                origins=origins,  
+                destinations=destinations,
                 current_date=current_date
             )
 
@@ -500,7 +500,6 @@ def flights_board():
     if "manager" not in session:
         return redirect(url_for("homepage"))
 
-    # --- הוספה: שליפת רשימות מוצא ויעד מהדאטהבייס ---
     conn = get_connection("FLYTAU")
     cursor = conn.cursor(dictionary=True)
 
@@ -626,16 +625,13 @@ def contact_us():
         email = request.form.get("email")
         details = request.form.get("details")
 
-        # כאן אפשר לשלוח לדאטהבייס או אימייל אם רוצים
-        # לדוגמה: save_contact(title, email, details)
-
-        message_sent = True  # נשתמש בזה כדי להציג את ההודעה בצד הכפתור
+        message_sent = True  
 
     return render_template("contact_us.html", message_sent=message_sent)
 
 @app.route("/search-flights", methods=["POST"])
 def search_flights():
-    # 🚫 Manager cannot book flights
+    # Manager cannot book flights
     if session.get("manager"):
         return render_template("manager_cannot_book.html")
     origin = request.form.get("source")
@@ -823,7 +819,7 @@ def flight_customer_login():
             session.pop("login_email", None)
 
             session["logged_in"] = True
-            # 🔹 Log the user in via session
+            # Log the user in via session
             session["user"] = {
                 "email": user.email,
                 "first_name": user.first_name,
@@ -1173,7 +1169,7 @@ def select_seat():
             )
             return redirect(url_for("select_seat"))
 
-        # ✅ All validations passed – now we finalize the booking seats
+        # All validations passed – now we finalize the booking seats
 
         seat_map = {s.seat_number: s for s in seats}
 
@@ -1478,7 +1474,7 @@ def cancel_booking(order_id):
         # Process cancellation
         try:
             refund_amount, cancellation_fee = booking.cancel_order()
-            # ✅ Pass ready-to-display numbers to template
+            # Pass ready-to-display numbers to template
             return render_template("cancel_success.html",
                                    booking=booking,
                                    refund_amount=round(refund_amount,2),
@@ -1512,7 +1508,7 @@ def my_bookings():
 
     email = session["user"]["email"]
 
-    # ⬅️ כאן אנחנו לוקחים את הערך מה-select
+    # כאן אנחנו לוקחים את הערך מה-select
     selected_status = request.args.get("status")
 
     # 1️⃣ קח את כל ההזמנות של המשתמש
