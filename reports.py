@@ -39,7 +39,6 @@ def report_avg_capacity():
     cursor.close()
     conn.close()
 
-    # ===== גרף פאי (רק שינוי צבע החתך) =====
     plt.figure(figsize=(4, 4))
     plt.pie(
         [avg_capacity, 100 - avg_capacity],
@@ -117,7 +116,6 @@ def report_revenue():
 
     x = range(len(categories))
 
-    # ===== עיצוב הגרף =====
     plt.figure(figsize=(6, 4))
     plt.bar(x, business, width=0.4, label="Business", color="#1976D2")
     plt.bar([i + 0.4 for i in x], economy, width=0.4, label="Economy", color="#90CAF9")
