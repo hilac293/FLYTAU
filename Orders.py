@@ -45,7 +45,7 @@ class Order:
                 guest_email = session["booking"]["customer"]["email"]
                 print(guest_email)
                 registered_email = None
-            
+
 
             # --- Insert order ---
             cursor.execute("""
@@ -92,7 +92,7 @@ class Order:
 
         for seat in self.seats:
             cursor.execute("""
-                INSERT INTO booking_seats
+                INSERT INTO Booking_Seats
                 (order_id, plane_id, class_type, seat_number)
                 VALUES (%s, %s, %s, %s)
             """, (
@@ -109,7 +109,7 @@ class Order:
 
     # --- Update order status ---
     def update_status(self, new_status):
- 
+
         self.order_status = new_status
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
@@ -121,7 +121,7 @@ class Order:
 
     # --- Assign seats to this order (smart version) ---
     def assign_seats(self, new_seat_ids):
-  
+
         if not self.order_id:
             raise ValueError("Order must be saved in DB before assigning seats.")
 
@@ -182,7 +182,7 @@ class Order:
             # Get guest phones
             cursor.execute("""
                 SELECT phone_number
-                FROM guest_phones
+                FROM Guest_Phones
                 WHERE email = %s
             """, (self.email_guest,))
             phones = [row["phone_number"] for row in cursor.fetchall()]
@@ -208,7 +208,7 @@ class Order:
             # Get registered phones
             cursor.execute("""
                 SELECT phone_number
-                FROM registered_phones
+                FROM Registered_Phones
                 WHERE passport_number = %s
             """, (user["passport_number"],))
             phones = [row["phone_number"] for row in cursor.fetchall()]
@@ -321,8 +321,8 @@ class Order:
         cursor = conn.cursor(dictionary=True)
 
         query = """
-            SELECT * 
-            FROM orders
+            SELECT *
+            FROM Orders
             WHERE order_id = %s AND guest_email = %s
         """
         cursor.execute(query, (booking_code, email))
@@ -364,7 +364,7 @@ class Order:
 
         query = """
             SELECT plane_id, class_type, seat_number
-            FROM booking_seats
+            FROM Booking_Seats
             WHERE order_id = %s
         """
         cursor.execute(query, (order_id,))
@@ -452,4 +452,4 @@ class Order:
 
 
 
-        
+

@@ -16,7 +16,7 @@ def report_avg_capacity():
     cursor.execute("""
         SELECT ROUND(AVG(flight_capacity), 2) AS avg_capacity_percentage
         FROM (
-            SELECT 
+            SELECT
                 f.flight_id,
                 COUNT(bs.seat_number) / s.total_seats * 100 AS flight_capacity
             FROM Flights f
@@ -63,9 +63,9 @@ def report_revenue():
 
     cursor.execute("""
         SELECT p.size AS plane_size, p.producer AS plane_producer, bs.class_type AS seat_class,
-            SUM(CASE 
-                WHEN bs.class_type = 'Business' THEN f.business_price 
-                WHEN bs.class_type = 'Economy' THEN f.regular_price 
+            SUM(CASE
+                WHEN bs.class_type = 'Business' THEN f.business_price
+                WHEN bs.class_type = 'Economy' THEN f.regular_price
             END) AS total_revenue,
             COUNT(bs.seat_number) AS seats_sold
         FROM Booking_Seats bs
@@ -73,7 +73,7 @@ def report_revenue():
             ON bs.order_id = o.order_id
         JOIN Flights f
             ON o.flight_id = f.flight_id
-        JOIN planes p
+        JOIN Planes p
             ON f.plane_id = p.plane_id
         WHERE
             o.order_status = 'COMPLETED'
@@ -147,7 +147,7 @@ def report_employee_hours():
                    CASE WHEN r.minutes <= 360 THEN 'Short' ELSE 'Long' END AS length_flight,
                    r.minutes AS total_m
             FROM Flights f
-            JOIN route r ON f.origin = r.origin AND f.destination = r.destination
+            JOIN Route r ON f.origin = r.origin AND f.destination = r.destination
             JOIN PilotsFlights pf ON f.flight_id = pf.flight_id
             JOIN Pilots p ON pf.pilot_id = p.pilot_id
             WHERE f.flight_status = 'Occurred'
@@ -159,7 +159,7 @@ def report_employee_hours():
                    CASE WHEN r.minutes <= 360 THEN 'Short' ELSE 'Long' END,
                    r.minutes
             FROM Flights f
-            JOIN route r ON f.origin = r.origin AND f.destination = r.destination
+            JOIN Route r ON f.origin = r.origin AND f.destination = r.destination
             JOIN FlightAttendantsFlights faf ON f.flight_id = faf.flight_id
             JOIN FlightAttendants fa ON faf.attendant_id = fa.attendant_id
             WHERE f.flight_status = 'Occurred'
