@@ -2,7 +2,7 @@ import mysql.connector
 from datetime import datetime
 from flask import session
 
-
+#connection to mysql
 def get_connection(data_base):
     conn = mysql.connector.connect(
         host="localhost",
@@ -11,9 +11,6 @@ def get_connection(data_base):
         database= data_base
     )
     return conn
-
-"ליצור פונקציה חיצונית שבודקת אם קיים מטוס מתאים אם קיים ליצור אובייקט מחלקה ואם לא להעלות שגיאה"
-
 
 
 
