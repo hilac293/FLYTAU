@@ -1,4 +1,3 @@
-FLYTAU PROJECT
 FlyTau – Flight Booking & Management System
 
 FlyTau is a full-stack flight booking system that simulates the core functionality of an airline platform.  
