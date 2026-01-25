@@ -95,7 +95,14 @@
               </td>
               <td>{{ f.plane_id }}</td>
               <td>{{ f.regular_price }} ₪</td>
-              <td>{{ f.business_price }} ₪</td>
+              <td>
+                {% if f.business_price is not none %}
+                  {{ f.business_price }} ₪
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+
             </tr>
             {% endfor %}
           </tbody>

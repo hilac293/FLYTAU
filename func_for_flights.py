@@ -189,7 +189,30 @@ def get_required_crew_by_duration(duration_hours):
     else:
         return 3, 2
 
+def get_required_crew_by_plane(plane_id):
+    """
+    Returns required_attendants, required_pilots based on the selected plane's size.
+    Assumes plane table has 'size' column with values: 'small', 'large'
+    """
+    conn = get_connection("FLYTAU")
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT size
+        FROM planes
+        WHERE plane_id = %s
+    """, (plane_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
 
+    if not row:
+        return 3, 2  # default small plane
+
+    size = row["size"].lower()
+    if size == "large":
+        return 6, 3
+    else:  # small plane
+        return 3, 2
 # ==============================
 # Available planes
 # ==============================

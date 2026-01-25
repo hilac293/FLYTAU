@@ -18,6 +18,7 @@ from func_for_flights import (
     get_available_planes,
     get_available_attendants,
     get_available_pilots,
+    get_required_crew_by_plane,
     get_required_crew_by_duration
 )
 
@@ -214,15 +215,9 @@ def create_flight():
             regular_price = float(data["regular_price"])
             if regular_price <= 0: raise ValueError
 
-            if not is_long_flight:
-                data["business_price"] = None
-            else:
-                if not data.get("business_price"):
-                    return return_error("בטיסה ארוכה חובה להזין מחיר למחלקת עסקים.")
+            if is_long_flight and not data.get("business_price"):
+                return return_error("בטיסה ארוכה חובה להזין מחיר למחלקת עסקים.")
 
-                business_price = float(data["business_price"])
-                if business_price <= regular_price:
-                    return return_error("מחיר מחלקת עסקים חייב להיות גבוה מהמחיר הרגיל.")
 
         except (ValueError, TypeError):
             return return_error("לא מולאו כל הפרטים הנדרשים או שהוזנו ערכי מחיר לא תקינים.")
@@ -283,20 +278,6 @@ def select_crew():
     data = session["flight_data"]
     departure_datetime = datetime.fromisoformat(session["departure_datetime"])
 
-    # 1. יצירת אובייקט הטיסה עם הגנה משגיאות float
-    reg_price = data.get("regular_price") or 0
-    bus_price = data.get("business_price") or 0
-
-    flight = Flight(
-        data["date"],
-        data["time"],
-        data["origin"],
-        data["destination"],
-        float(reg_price),
-        float(bus_price),
-        int(plane_id)
-    )
-    flight.send_to_db()
 
     # 2. פתיחת חיבור יחיד למסד הנתונים לשליפת כל המידע החסר
     conn = get_connection("FLYTAU")
@@ -323,13 +304,39 @@ def select_crew():
     duration_hours = route_row["minutes"] / 60
     plane_size = plane_row["size"] if plane_row else "Unknown"
 
+    def safe_float(val):
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return None
+
+    reg_price = safe_float(data.get("regular_price"))
+    bus_price = safe_float(data.get("business_price"))
+
+    # ---- התאמת מחיר מחלקת עסקים לפי גודל המטוס ----
+    if plane_size.lower() == "small":
+        # מטוס קטן → אין מחלקת עסקים
+        session["flight_data"]["business_price"] = None
+
+    flight = Flight(
+        data["date"],
+        data["time"],
+        data["origin"],
+        data["destination"],
+        reg_price,
+        bus_price,
+        int(plane_id)
+    )
+    flight.send_to_db()
+
     # 4. שמירה ב-Session להמשך התהליך
     session["created_flight_id"] = flight.flight_id
     session["selected_plane_id"] = int(plane_id)
     session["selected_plane_size"] = plane_size
 
+
     # 5. חישוב צוות נדרש ושליפת אנשי צוות זמינים
-    required_attendants, required_pilots = get_required_crew_by_duration(duration_hours)
+    required_attendants, required_pilots = get_required_crew_by_plane(plane_id)
 
     # שימוש בפרמטר duration_hours שחושב פעם אחת בלבד
     is_long = (duration_hours > 6)
@@ -400,7 +407,8 @@ def finalize_flight():
     conn.close()
 
     duration_hours = row["minutes"] / 60
-    required_attendants, required_pilots = get_required_crew_by_duration(duration_hours)
+    # Recalculate required crew based on the selected plane
+    required_attendants, required_pilots = get_required_crew_by_plane(session["selected_plane_id"])
 
     # Validate crew count
     if (
@@ -420,19 +428,16 @@ def finalize_flight():
         )
 
     # Assign crew to flight using flight_id
-    def safe_float(val, default=0.0):
-        try:
-            return float(val)
-        except (TypeError, ValueError):
-            return default
+    reg_price = float(session["flight_data"]["regular_price"])  # בטוח קיים
+    bus_price = session["flight_data"].get("business_price")  # יכול להיות None
 
     flight = Flight(
         session["flight_data"]["date"],
         session["flight_data"]["time"],
         session["flight_data"]["origin"],
         session["flight_data"]["destination"],
-        safe_float(session["flight_data"].get("regular_price")),
-        safe_float(session["flight_data"].get("business_price")),
+        reg_price,
+        bus_price,
         session["selected_plane_id"]
     )
 
