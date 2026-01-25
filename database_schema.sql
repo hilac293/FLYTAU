@@ -177,12 +177,12 @@ CREATE TABLE PilotsFlights (
 INSERT INTO Managers (
     manager_id, first_name, last_name, city, street, house_number, start_date, password
 ) VALUES (
-    212987366, 'Hila', 'Cohen', 'Tel Aviv', 'Herzl', '10', '2022-01-01', '1234'
+    212987366, 'הילה', 'כהן', 'Tel Aviv', 'Herzl', '10', '2022-01-01', '1234'
 );
 INSERT INTO Managers (
     manager_id, first_name, last_name, city, street, house_number, start_date, password
 ) VALUES (
-    212987367, 'Yossi', 'Levi', 'Haifa', 'Hertzel', '15', '2022-02-01', '5678'
+    212987367, 'יוסי', 'לוי', 'Haifa', 'Hertzel', '15', '2022-02-01', '5678'
 );
 
 -- =========================
@@ -218,30 +218,30 @@ INSERT INTO Planes (plane_id, size, producer, purchase_date) VALUES
 INSERT INTO FlightAttendants (
     attendant_id, first_name, last_name, city, street, house_number, start_date, training_type
 ) VALUES
-    (3001, 'Anna', 'Smith', 'Tel Aviv', 'Ben Yehuda', '12', '2020-01-01', 'long'),
-    (3002, 'John', 'Brown', 'Haifa', 'Herzl', '5', '2019-03-15', 'long'),
-    (3003, 'Emily', 'Davis', 'Jerusalem', 'King George', '8', '2021-06-10', 'short'),
-    (3004, 'Michael', 'Wilson', 'Eilat', 'Palm', '22', '2018-11-20', 'long'),
-    (3005, 'Sarah', 'Taylor', 'Tel Aviv', 'Allenby', '30', '2022-02-01', 'short');
+    (3001, 'אנה', 'סמית', 'Tel Aviv', 'Ben Yehuda', '12', '2020-01-01', 'long'),
+    (3002, 'גון', 'בראון', 'Haifa', 'Herzl', '5', '2019-03-15', 'long'),
+    (3003, 'אמילי', 'דויס', 'Jerusalem', 'King George', '8', '2021-06-10', 'short'),
+    (3004, 'מייקל', 'ווילסון', 'Eilat', 'Palm', '22', '2018-11-20', 'long'),
+    (3005, 'שרה', 'טיילור', 'Tel Aviv', 'Allenby', '30', '2022-02-01', 'short');
 
 INSERT INTO FlightAttendants (
     attendant_id, first_name, last_name, city, street, house_number, start_date, training_type
 ) VALUES
-(3006, 'Olivia', 'Martinez', 'Tel Aviv', 'Allenby', '32', '2020-07-01', 'long'),
-(3007, 'Sophia', 'Hernandez', 'Haifa', 'Carmel', '4', '2019-09-10', 'long'),
-(3008, 'Isabella', 'Lopez', 'Jerusalem', 'King George', '9', '2021-05-20', 'short'),
-(3009, 'Mia', 'Gonzalez', 'Eilat', 'Hayam', '7', '2018-08-15', 'long'),
-(3010, 'Amelia', 'Perez', 'Tel Aviv', 'Dizengoff', '11', '2022-01-05', 'short'),
-(3011, 'Harper', 'Robinson', 'Haifa', 'Herzl', '3', '2019-03-18', 'long'),
-(3012, 'Evelyn', 'Clark', 'Jerusalem', 'Jaffa', '12', '2021-06-25', 'short'),
-(3013, 'Abigail', 'Rodriguez', 'Eilat', 'Palm', '14', '2018-11-30', 'long'),
-(3014, 'Ella', 'Lewis', 'Tel Aviv', 'Ben Yehuda', '16', '2020-12-01', 'short'),
-(3015, 'Avery', 'Walker', 'Haifa', 'Hertzel', '7', '2021-02-10', 'long'),
-(3016, 'Scarlett', 'Hall', 'Jerusalem', 'King George', '5', '2022-03-12', 'short'),
-(3017, 'Grace', 'Allen', 'Eilat', 'Rager', '9', '2019-07-08', 'long'),
-(3018, 'Chloe', 'Young', 'Tel Aviv', 'Ahad Haam', '6', '2021-09-15', 'short'),
-(3019, 'Victoria', 'Hernandez', 'Haifa', 'Carmel', '8', '2020-10-10', 'long'),
-(3020, 'Lillian', 'King', 'Jerusalem', 'Ben Yehuda', '10', '2022-05-01', 'short');
+(3006, 'אוליביה', 'מרטיני', 'Tel Aviv', 'Allenby', '32', '2020-07-01', 'long'),
+(3007, 'סופיה', 'הרנז', 'Haifa', 'Carmel', '4', '2019-09-10', 'long'),
+(3008, 'איזבלה', 'לופז', 'Jerusalem', 'King George', '9', '2021-05-20', 'short'),
+(3009, 'מאיה', 'גונן', 'Eilat', 'Hayam', '7', '2018-08-15', 'long'),
+(3010, 'אמליה', 'פרז', 'Tel Aviv', 'Dizengoff', '11', '2022-01-05', 'short'),
+(3011, 'שלי', 'רובין', 'Haifa', 'Herzl', '3', '2019-03-18', 'long'),
+(3012, 'איילין', 'קלי', 'Jerusalem', 'Jaffa', '12', '2021-06-25', 'short'),
+(3013, 'אביגיל', 'רודרי', 'Eilat', 'Palm', '14', '2018-11-30', 'long'),
+(3014, 'אלה', 'לואיז', 'Tel Aviv', 'Ben Yehuda', '16', '2020-12-01', 'short'),
+(3015, 'נועה', 'רגב', 'Haifa', 'Hertzel', '7', '2021-02-10', 'long'),
+(3016, 'עינב', 'סלב', 'Jerusalem', 'King George', '5', '2022-03-12', 'short'),
+(3017, 'גרייס', 'אלן', 'Eilat', 'Rager', '9', '2019-07-08', 'long'),
+(3018, 'קלואי', 'יאנג', 'Tel Aviv', 'Ahad Haam', '6', '2021-09-15', 'short'),
+(3019, 'ויטוריה', 'סיקרט', 'Haifa', 'Carmel', '8', '2020-10-10', 'long'),
+(3020, 'לילי', 'שורט', 'Jerusalem', 'Ben Yehuda', '10', '2022-05-01', 'short');
 
 -- =========================
 -- Flight Attendant Phones
@@ -276,20 +276,20 @@ INSERT INTO FlightAttendantPhones (attendant_id, phone_number) VALUES
 INSERT INTO Pilots (
     pilot_id, first_name, last_name, city, street, house_number, start_date, training_type
 ) VALUES
-    (4001, 'David', 'Miller', 'Tel Aviv', 'Dizengoff', '10', '2017-01-01', 'long'),
-    (4002, 'Robert', 'Anderson', 'Haifa', 'Carmel', '3', '2016-05-20', 'long'),
-    (4003, 'James', 'Thomas', 'Jerusalem', 'Jaffa', '14', '2019-09-01', 'long'),
-    (4004, 'Daniel', 'Moore', 'Beer Sheva', 'Rager', '7', '2021-04-12', 'short');
+    (4001, 'דוד', 'מילר', 'Tel Aviv', 'Dizengoff', '10', '2017-01-01', 'long'),
+    (4002, 'רוברט', 'אנדרסון', 'Haifa', 'Carmel', '3', '2016-05-20', 'long'),
+    (4003, 'גיימס', 'תומס', 'Jerusalem', 'Jaffa', '14', '2019-09-01', 'long'),
+    (4004, 'דניאל', 'מור', 'Beer Sheva', 'Rager', '7', '2021-04-12', 'short');
 
 INSERT INTO Pilots (
     pilot_id, first_name, last_name, city, street, house_number, start_date, training_type
 ) VALUES
-(4005, 'Ethan', 'Hall', 'Tel Aviv', 'Rothschild', '12', '2018-05-01', 'long'),
-(4006, 'Liam', 'Young', 'Haifa', 'Hatzionut', '8', '2017-08-12', 'long'),
-(4007, 'Noah', 'King', 'Jerusalem', 'Ben Yehuda', '20', '2019-10-15', 'long'),
-(4008, 'Mason', 'Wright', 'Beer Sheva', 'Hagalil', '11', '2020-03-22', 'short'),
-(4009, 'Logan', 'Scott', 'Eilat', 'Hayam', '5', '2021-06-10', 'short'),
-(4010, 'Lucas', 'Adams', 'Tel Aviv', 'Ahad Haam', '9', '2016-12-01', 'long');
+(4005, 'איתן', 'הול', 'Tel Aviv', 'Rothschild', '12', '2018-05-01', 'long'),
+(4006, 'ליאם', 'אידלמן', 'Haifa', 'Hatzionut', '8', '2017-08-12', 'long'),
+(4007, 'נועם', 'לכר', 'Jerusalem', 'Ben Yehuda', '20', '2019-10-15', 'long'),
+(4008, 'מייסון', 'וויט', 'Beer Sheva', 'Hagalil', '11', '2020-03-22', 'short'),
+(4009, 'לוגן', 'סקוט', 'Eilat', 'Hayam', '5', '2021-06-10', 'short'),
+(4010, 'לוקס', 'אדם', 'Tel Aviv', 'Ahad Haam', '9', '2016-12-01', 'long');
 
 -- =========================
 -- Pilot Phones
