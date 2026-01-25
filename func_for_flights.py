@@ -467,7 +467,7 @@ def get_available_pilots(flight_datetime, origin=None, destination=None, is_long
         if last_flight:
             last_origin = last_flight["origin"]
             last_destination = last_flight["destination"]
-            last_arrival = last_flight["arrival"]  # הוסף שעת נחיתה
+            last_arrival = last_flight["arrival"] 
         else:
             last_origin = BASE_AIRPORT
             last_destination = BASE_AIRPORT
@@ -480,7 +480,7 @@ def get_available_pilots(flight_datetime, origin=None, destination=None, is_long
             "start_date": p_row["start_date"],
             "last_origin": last_origin,
             "last_destination": last_destination,
-            "last_arrival": last_arrival  # הוסף לשם שימוש ב-HTML
+            "last_arrival": last_arrival  
         })
 
     cursor.close()
