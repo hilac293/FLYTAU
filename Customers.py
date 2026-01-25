@@ -295,25 +295,6 @@ class Registered(Customer):
             return False
         return check_password_hash(self.password, input_password)
 
-    # --- Update password in the database ---
-    def update_password(self, new_password):
-        """
-        Hash the new password and update it in the database.
-        """
-        # 1️⃣ Hash the new password
-        hashed_password = generate_password_hash(new_password)
-        self.password = hashed_password
-
-        # 2️⃣ Connect to DB and update
-        conn = get_connection("FLYTAU")
-        cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE registered SET password = %s WHERE passport_number = %s",
-            (self.password, self.passport_number)
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
 
     # --- Fetch order history for this registered customer ---
     def get_order_history(self, status=None):
