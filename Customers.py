@@ -51,16 +51,16 @@ class Guest(Customer):
 
         # Insert or update guest info
         cursor.execute("""
-            INSERT INTO guests (email, first_name, last_name)
+            INSERT IGNORE INTO Guests (email, first_name, last_name)
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE first_name=%s, last_name=%s
         """, (self.email, self.first_name, self.last_name,
               self.first_name, self.last_name))
 
         # Update phones
-        cursor.execute("DELETE FROM guest_phones WHERE email = %s", (self.email,))
+        cursor.execute("DELETE FROM Guest_Phones WHERE email = %s", (self.email,))
         for phone in self.phones:
-            cursor.execute("INSERT INTO guest_phones (email, phone_number) VALUES (%s, %s)",
+            cursor.execute("INSERT IGNORE INTO Guest_Phones (email, phone_number) VALUES (%s, %s)",
                            (self.email, phone))
 
         conn.commit()
@@ -146,8 +146,8 @@ class Guest(Customer):
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE guests SET email = %s WHERE email = %s", (self.email, old_email))
-        cursor.execute("UPDATE guest_phones SET email = %s WHERE email = %s", (self.email, old_email))
+        cursor.execute("UPDATE Guests SET email = %s WHERE email = %s", (self.email, old_email))
+        cursor.execute("UPDATE Guest_Phones SET email = %s WHERE email = %s", (self.email, old_email))
 
         conn.commit()
         cursor.close()
@@ -173,7 +173,7 @@ class Registered(Customer):
         cursor = conn.cursor()
 
         query = """
-            INSERT INTO registered
+            INSERT INTO Registered
             (passport_number, first_name, last_name, email, birth_date, registration_date, password)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             ON DUPLICATE KEY UPDATE first_name=%s, last_name=%s, email=%s,
@@ -199,9 +199,9 @@ class Registered(Customer):
             raise
 
         # Update phones
-        cursor.execute("DELETE FROM registered_phones WHERE passport_number = %s", (self.passport_number,))
+        cursor.execute("DELETE FROM Registered_Phones WHERE passport_number = %s", (self.passport_number,))
         for phone in self.phones:
-            cursor.execute("INSERT INTO registered_phones (passport_number, phone_number) VALUES (%s, %s)",
+            cursor.execute("INSERT INTO Registered_Phones (passport_number, phone_number) VALUES (%s, %s)",
                            (self.passport_number, phone))
 
         conn.commit()
@@ -222,7 +222,7 @@ class Registered(Customer):
 
         # 2️⃣ Fetch user basic information from 'registered' table
         cursor.execute(
-            "SELECT * FROM registered WHERE email = %s",
+            "SELECT * FROM Registered WHERE email = %s",
             (email,)
         )
         user_row = cursor.fetchone()
@@ -237,7 +237,7 @@ class Registered(Customer):
 
         # 4️⃣ Fetch user's phone numbers from 'registered_phones' table
         cursor.execute(
-            "SELECT phone_number FROM registered_phones WHERE passport_number = %s",
+            "SELECT phone_number FROM Registered_Phones WHERE passport_number = %s",
             (passport_number,)
         )
         phones_rows = cursor.fetchall()
@@ -278,7 +278,7 @@ class Registered(Customer):
         conn = get_connection("FLYTAU")
         cursor = conn.cursor()
 
-        cursor.execute("UPDATE registered SET email = %s WHERE email = %s", (self.email, old_email))
+        cursor.execute("UPDATE Registered SET email = %s WHERE email = %s", (self.email, old_email))
 
         conn.commit()
         cursor.close()
@@ -327,4 +327,4 @@ class Registered(Customer):
         order.last_name = self.last_name
         order.email = self.email
         order.phones = list(self.phones)
-        
+

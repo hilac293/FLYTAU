@@ -1,5 +1,4 @@
 import re
-from audioop import error
 from collections import defaultdict
 
 from flask import Flask, render_template, request, redirect, session, url_for, flash
@@ -30,6 +29,16 @@ from reports import (
 
 app = Flask(__name__)
 app.secret_key = "secret123"
+
+app.config.update(
+    SESSION_TYPE="filesystem",
+    SESSION_FILE_DIR="/home/hila293/FLYTAU/flask_session_data",
+    SESSION_PERMANENT=True,
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
+    SESSION_REFRESH_EACH_REQUEST=True,
+    SESSION_COOKIE_SECURE=True
+)
+
 
 # Steps for the progress bar
 STEPS = [
@@ -156,9 +165,9 @@ def get_route_data():
     """פונקציית עזר לשליפת היעדים והמקורות מהדאטה-בייס"""
     conn = get_connection("FLYTAU")
     cursor = conn.cursor()
-    cursor.execute("SELECT DISTINCT origin FROM route ORDER BY origin")
+    cursor.execute("SELECT DISTINCT origin FROM Route ORDER BY origin")
     origins = [row[0] for row in cursor.fetchall()]
-    cursor.execute("SELECT DISTINCT destination FROM route ORDER BY destination")
+    cursor.execute("SELECT DISTINCT destination FROM Route ORDER BY destination")
     destinations = [row[0] for row in cursor.fetchall()]
     cursor.close()
     conn.close()
@@ -183,7 +192,7 @@ def create_flight():
             return render_template(
                 "create_flight.html",
                 error=msg,
-                origins=origins,  
+                origins=origins,
                 destinations=destinations,
                 current_date=current_date
             )
@@ -199,7 +208,7 @@ def create_flight():
         # ---- בדיקת קיום מסלול ----
         conn = get_connection("FLYTAU")
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT minutes FROM route WHERE origin = %s AND destination = %s", (origin, destination))
+        cursor.execute("SELECT minutes FROM Route WHERE origin = %s AND destination = %s", (origin, destination))
         row = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -285,13 +294,13 @@ def select_crew():
 
     # שליפת משך הטיסה מהמסלול
     cursor.execute("""
-        SELECT minutes FROM route 
+        SELECT minutes FROM Route
         WHERE origin = %s AND destination = %s
     """, (data["origin"], data["destination"]))
     route_row = cursor.fetchone()
 
     # שליפת גודל המטוס (הוספה חדשה)
-    cursor.execute("SELECT size FROM planes WHERE plane_id = %s", (plane_id,))
+    cursor.execute("SELECT size FROM Planes WHERE plane_id = %s", (plane_id,))
     plane_row = cursor.fetchone()
 
     cursor.close()
@@ -395,7 +404,7 @@ def finalize_flight():
 
     cursor.execute("""
         SELECT minutes
-        FROM route
+        FROM Route
         WHERE origin = %s AND destination = %s
     """, (
         session["flight_data"]["origin"],
@@ -508,10 +517,10 @@ def flights_board():
     conn = get_connection("FLYTAU")
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("SELECT DISTINCT origin FROM route ORDER BY origin")
+    cursor.execute("SELECT DISTINCT origin FROM Route ORDER BY origin")
     origins_list = [row['origin'] for row in cursor.fetchall()]
 
-    cursor.execute("SELECT DISTINCT destination FROM route ORDER BY destination")
+    cursor.execute("SELECT DISTINCT destination FROM Route ORDER BY destination")
     destinations_list = [row['destination'] for row in cursor.fetchall()]
     # ---------------------------------------------
 
@@ -596,11 +605,11 @@ def homepage():
     cursor = conn.cursor()
 
     # Fetch distinct origins
-    cursor.execute("SELECT DISTINCT origin FROM route WHERE origin IS NOT NULL AND origin != '' ORDER BY origin")
+    cursor.execute("SELECT DISTINCT origin FROM Route WHERE origin IS NOT NULL AND origin != '' ORDER BY origin")
     origins = [row[0] for row in cursor.fetchall()]
 
     cursor.execute(
-        "SELECT DISTINCT destination FROM route WHERE destination IS NOT NULL AND destination != '' ORDER BY destination")
+        "SELECT DISTINCT destination FROM Route WHERE destination IS NOT NULL AND destination != '' ORDER BY destination")
     destinations = [row[0] for row in cursor.fetchall()]
 
     cursor.close()
@@ -630,7 +639,7 @@ def contact_us():
         email = request.form.get("email")
         details = request.form.get("details")
 
-        message_sent = True  
+        message_sent = True
 
     return render_template("contact_us.html", message_sent=message_sent)
 
@@ -670,7 +679,7 @@ def search_flights():
         # check how much free seats
         cursor.execute("""
             SELECT SUM(pc.rows_number * pc.columns_number) AS total_seats
-            FROM plane_class pc
+            FROM Plane_Class pc
             WHERE pc.plane_id = %s
         """, (flight['plane_id'],))
         plane_info = cursor.fetchone()
@@ -679,7 +688,7 @@ def search_flights():
         cursor.execute("""
             SELECT COUNT(bs.seat_number) AS occupied_seats
             FROM Booking_Seats bs
-            JOIN orders o ON o.order_id = bs.order_id
+            JOIN Orders o ON o.order_id = bs.order_id
             WHERE o.flight_id = %s AND o.order_status = 'ACTIVE'
         """, (flight['flight_id'],))
         occupied_info = cursor.fetchone()
@@ -1546,7 +1555,6 @@ def my_bookings():
     )
 
 
-
-
 if __name__ == "__main__":
     app.run(debug=True)
+

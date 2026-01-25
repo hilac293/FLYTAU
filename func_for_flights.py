@@ -15,7 +15,7 @@ def _get_flight_duration_minutes(cursor, origin, destination):
     """
     cursor.execute("""
         SELECT minutes
-        FROM route
+        FROM Route
         WHERE origin = %s AND destination = %s
     """, (origin, destination))
     row = cursor.fetchone()
@@ -259,7 +259,7 @@ def get_available_planes(origin, destination, departure_datetime):
         SELECT p.plane_id,
                p.size,
                p.producer
-        FROM planes p
+        FROM Planes p
         WHERE {size_condition}
     """)
     planes_rows = cursor.fetchall()
@@ -292,7 +292,7 @@ def get_available_planes(origin, destination, departure_datetime):
         # Compute total seats for the plane
         cursor.execute("""
             SELECT SUM(pc.rows_number * pc.columns_number) AS total_seats
-            FROM plane_class pc
+            FROM Plane_Class pc
             WHERE pc.plane_id = %s
         """, (plane_id,))
         seat_info = cursor.fetchone()
@@ -490,7 +490,7 @@ def get_available_pilots(flight_datetime, origin=None, destination=None, is_long
         if last_flight:
             last_origin = last_flight["origin"]
             last_destination = last_flight["destination"]
-            last_arrival = last_flight["arrival"] 
+            last_arrival = last_flight["arrival"]
         else:
             last_origin = BASE_AIRPORT
             last_destination = BASE_AIRPORT
@@ -503,7 +503,7 @@ def get_available_pilots(flight_datetime, origin=None, destination=None, is_long
             "start_date": p_row["start_date"],
             "last_origin": last_origin,
             "last_destination": last_destination,
-            "last_arrival": last_arrival  
+            "last_arrival": last_arrival
         })
 
     cursor.close()
