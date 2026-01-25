@@ -58,7 +58,7 @@ class PlaneClass:
 
         query = """
             SELECT class_type, rows_number, columns_number
-            FROM plane_class
+            FROM Plane_Class
             WHERE plane_id = %s
         """
         cursor.execute(query, (plane_id,))
@@ -233,7 +233,7 @@ class Planes:
         # Insert plane classes
         for plane_class in self.classes:
             cursor.execute("""
-                INSERT INTO plane_class (plane_id, class_type, rows_number, columns_number)
+                INSERT INTO Plane_Class (plane_id, class_type, rows_number, columns_number)
                 VALUES (%s, %s, %s, %s)
                 ON DUPLICATE KEY UPDATE rows_number=%s, columns_number=%s
             """, (self.plane_id, plane_class.class_type.value, plane_class.rows_number, plane_class.columns_number,

@@ -40,7 +40,7 @@ class Flight:
 
             cursor.execute("""
                 SELECT minutes
-                FROM route
+                FROM Route
                 WHERE origin = %s AND destination = %s
             """, (self.origin, self.destination))
 
@@ -148,7 +148,7 @@ class Flight:
             query = """
                 SELECT flight_id, departure_datetime, origin, destination,
                        flight_status, regular_price, business_price, plane_id
-                FROM flights
+                FROM Flights
                 WHERE flight_id = %s
             """
             cursor.execute(query, (flight_id,))
