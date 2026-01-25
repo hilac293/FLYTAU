@@ -163,11 +163,9 @@ class Flight:
             conn = get_connection("FLYTAU")
             cursor = conn.cursor()
 
-            # 1) הסרת צוות מקושר
             cursor.execute("DELETE FROM PilotsFlights WHERE flight_id = %s", (flight_id,))
             cursor.execute("DELETE FROM FlightAttendantsFlights WHERE flight_id = %s", (flight_id,))
 
-            # 2) שינוי סטטוס במקום מחיקה
             cursor.execute("""
                 UPDATE Flights
                 SET flight_status = 'Cancelled'
